@@ -1,16 +1,19 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import Image from "next/image";
 
 export default function AuthPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-white px-6">
       {/* Logo and Header */}
       <div className="text-center mb-12">
-        <img
-          src="./TouriLogo.png"
+        <Image
+          src={"/TouriLogo.png"}
           alt="Touri Logo"
-          className="mx-auto mb-6 w-48 h-48"
+          width={192}
+          height={192}
+          className="mx-auto mb-6 w-48 h-48 overflow-hidden"
         />
         <h1 className="text-6xl font-bold mb-2">Touri</h1>
         <p className="text-xl text-gray-700">
@@ -32,9 +35,7 @@ export default function AuthPage() {
           />
         </div>
 
-        <Button className="w-full py-3 cursor-pointer">
-            Sign In
-        </Button>
+        <Button className="w-full py-3 cursor-pointer">Sign In</Button>
 
         {/* Divider */}
         <div className="flex items-center">
@@ -46,9 +47,9 @@ export default function AuthPage() {
         {/* Google Sign In */}
         <Button
           variant={"outline"}
-          className="w-full flex items-center cursor-pointer gap-2"
+          className="w-full flex items-center justify-center cursor-pointer gap-2"
         >
-          <img src="google-icon.svg" alt="GoogleIcon" className="w-5 h-5" />
+          <Image src={"/google-icon.svg"} alt="GoogleIcon" className="w-5 h-5" width={5} height={5} />
           Sign in with Google
         </Button>
       </div>
