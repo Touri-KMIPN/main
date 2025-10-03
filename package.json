@@ -8,8 +8,8 @@
     "start": "next start"
   },
   "dependencies": {
-    "@googlemaps/markerclusterer": "^2.6.2",
     "@google/genai": "^1.21.0",
+    "@googlemaps/markerclusterer": "^2.6.2",
     "@kinde-oss/kinde-auth-nextjs": "^2.9.2",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "^1.1.15",
@@ -60,7 +60,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
-    "@tailwindcss/typography": "^0.5.19",
+    "@tailwindcss/typography": "0.5.0-alpha.3",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

@@ -1,5 +1,5 @@
-import React from 'react'
 "use client"
+import React from 'react'
 import Conversation from "@/components/chat/conversation";
 import { SpotsProvider } from "@/providers/SpotsProvider";
 import { GetCurrentTimeTool } from "@/tools/GetCurrentTimeTool";
