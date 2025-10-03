@@ -1,9 +1,8 @@
 import React from 'react'
+import MapPage from '../components/_layout/mapLayout'
 
 export default function page() {
   return (
-    <div>
-      <h1 className=''>Hello</h1>
-    </div>
+    <MapPage/>
   )
 }
