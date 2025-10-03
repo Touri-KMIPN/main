@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { League_Spartan, Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
-import Navbar from "@/components/_layout/navbar";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -10,8 +9,11 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Touri - AI Travel Assistant",
+  title: "Touri - Your Pocket AI Tour Guide",
   description: "Your AI Tour Guide In Your Pocket",
+  icons: {
+    icon: "/Touri.webp",
+  }
 };
 
 export default function RootLayout({
@@ -28,7 +30,6 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <Navbar />
           {children}
         </ThemeProvider>
       </body>

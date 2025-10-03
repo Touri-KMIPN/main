@@ -9,11 +9,11 @@ export default function AuthPage() {
       {/* Logo and Header */}
       <div className="text-center mb-12">
         <Image
-          src={"/TouriLogo.png"}
+          src={"/TouriMascot.webp"}
           alt="Touri Logo"
           width={192}
           height={192}
-          className="mx-auto mb-6 w-48 h-48 overflow-hidden"
+          className="mx-auto mb-6 w-56 h-56 overflow-hidden"
         />
         <h1 className="text-6xl font-bold mb-2">Touri</h1>
         <p className="text-xl text-gray-700">
