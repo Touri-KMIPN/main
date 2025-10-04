@@ -11,7 +11,7 @@ export default function CTASection() {
     >
       <div className="absolute inset-0 bg-gradient-to-b from-background/70 via-background/50 to-background/80 backdrop-blur-sm"></div>
 
-      <div className="relative container mx-auto text-center z-10 max-w-4xl">
+      <div className="relative mx-auto text-center z-10 max-w-4xl">
         <h1 className="text-3xl md:text-5xl font-bold text-foreground mb-4 tracking-tight">
           Where we going today?
         </h1>
@@ -26,8 +26,8 @@ export default function CTASection() {
               type="text"
               placeholder="Search your destination..."
               className="w-full p-5 rounded-full bg-background text-foreground border border-input focus:outline-none focus:ring-2 focus:ring-primary shadow-xl shadow-primary/10 transition-all duration-300"
-            />
-            <button className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-primary text-primary-foreground p-4 rounded-full hover:bg-primary/90 cursor-pointer transition-all duration-300 shadow-lg hover:shadow-xl">
+            />  
+            <button className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-primary text-primary-foreground p-3 rounded-full hover:bg-primary/90 cursor-pointer transition-all duration-300 shadow-lg">
               <Search size={22} />
             </button>
           </div>
