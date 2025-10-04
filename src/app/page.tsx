@@ -1,19 +1,21 @@
-"use client"
-import React from 'react'
-import Conversation from "@/components/chat/conversation";
-import { SpotsProvider } from "@/providers/SpotsProvider";
-import { GetCurrentTimeTool } from "@/tools/GetCurrentTimeTool";
-import { Message } from "@/types/chat";
-import { useState } from "react";
+import Footer from "@/components/_layout/footer";
+import Navbar from "@/components/_layout/navbar";
+import CTASection from "@/components/_section/cta";
+import HeroSection from "@/components/_section/hero-section";
+import React from "react";
 
-export default function Home() {
-  const [message, setMessage] = useState<Message[]>([]);
-
+export default function LandingPage() {
   return (
-    <SpotsProvider>
-      <div className="max-w-screen-sm mx-auto">
-        <Conversation tools={[GetCurrentTimeTool]} messages={message} setMessages={setMessage} />
-      </div>
-    </SpotsProvider>
+    <div className="mx-auto">
+      <Navbar />
+
+      {/* Hero Section */}
+      <HeroSection />
+
+      {/* CTA */}
+      <CTASection />
+      
+      <Footer />
+    </div>
   );
 }
