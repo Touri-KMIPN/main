@@ -5,7 +5,7 @@ import React from 'react'
 type SpotsProviderContext = {
     spots: Spot[],
     getSpotById: (id: string) => Spot | undefined
-    setSpots: (spots: Spot[]) => void
+    setSpots: React.Dispatch<React.SetStateAction<Spot[]>>
     addSpot: (spot: Spot) => void
     removeSpot: (id: string) => void
 }
