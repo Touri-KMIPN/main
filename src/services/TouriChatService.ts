@@ -8,15 +8,66 @@ import {
     Part,
 } from "@google/genai";
 import type { Tool } from "@/types/tool";
-import { PlaceTool } from "@/tools/PlaceTool";
+import { Spot } from "@/types/spot";
+import { SearchPlaceTools, GetUserLocationTool, ReverseGeocodingTool } from "@/tools/MapTools";
+import { SpotsProviderContext, useSpots } from "@/providers/SpotsProvider";
 
 const MODEL = "gemini-2.5-flash";
+const SYSTEM_PROMPT = `
+                Your name is Touri, an AI assistant for a tourism app.
+                You are a helpful AI assistant for a tourism app called Touri.
+                Remember all previous conversation context and user details throughout our conversation.
+                Please response expressively and enthusiastically.
+
+                Here are the tools you have access to:
+
+                **Location & Place Search Tools:**
+                - search_place: Search for places using text queries (e.g., "best pizza in Rome", "Eiffel Tower"). More flexible than category-based search.
+                - get_user_location: Get the user's current geographical coordinates (latitude/longitude).
+                - get_geolocation_info: Get detailed information about what places are at a specific location (useful for "where am I?" questions).
+
+                **When to use each tool:**
+                
+                1. **search_place** - Use when user asks for:
+                   - Specific place names: "find Statue of Liberty", "search McDonald's"
+                   - Complex queries: "best Italian restaurants", "cheap hotels"
+                   - Places with descriptions: "romantic dinner spots", "family-friendly activities"
+                
+                2. **get_user_location** - Use when:
+                   - User asks "where am I?"
+                   - You need coordinates for other tools
+                   - User wants to know their exact location
+                
+                3. **reverse_geocode_tool** - Use when:
+                   - User asks "what's around me?" or "what places are here?"
+                   - User wants to know what specific place they're currently at
+                   - Need to identify nearby landmarks within 50 meters
+
+                **Important Guidelines:**
+                - Always use tools directly without asking for location first - they handle geolocation automatically
+                - When user asks for recommendations, immediately use the appropriate search tool
+                - search_place can be used for both broad and specific queries
+                - search_place will be automatically searched for nearby location if no specific location (long, lat) is provided
+                - you can use search_place to find nearby places by using queries like "places near me" or "restaurants near me"
+                - please chain get_user_location or reverse_geocode_tool to get more relevant results of user location. the user of-course did not want their coordinates
+                - For historical sites, museums, landmarks - use search_place with descriptive queries
+                - Always respond in markdown format
+                - Use [[spot:<id>|<label>]] syntax to create interactive spots for places you mention
+                - Never make up place IDs or information - only use data from tool responses
+                - Be concise, informative, and enthusiastic in your responses
+
+                **Examples:**
+                - "show me restaurants" → use get_nearby_place with includedTypes: ["restaurant"]
+                - "find historical places" → use search_place with textQuery: "historical sites museums landmarks"
+                - "where am I?" → use get_user_location or get_geolocation_info
+                - "what's the best pizza place?" → use search_place with textQuery: "best pizza restaurant"
+                `
 
 export class TouriChatService {
     /**
      * Utility to listen to spot addition
      */
-    onSpotChange: () => void;
+    onSpotChange: (spots: Spot[]) => void;
 
     /**
      * Utility to listen to history change
@@ -38,7 +89,7 @@ export class TouriChatService {
     isGenerating = false;
 
     constructor(
-        onSpotChange: () => void,
+        onSpotChange: (spots: Spot[]) => void,
         onMemoryChange: (memory: Content[]) => void,
         onResponseStream: (chunk: string) => void,
         onResponseEnd: () => void,
@@ -57,7 +108,7 @@ export class TouriChatService {
         });
 
         tools
-            .concat([PlaceTool]) // always include PlaceTool
+            .concat([SearchPlaceTools, GetUserLocationTool, ReverseGeocodingTool]) // always include all map tools
             .filter((tool) => tool.declaration.name != null)
             .forEach((tool) => this.tools.set(tool.declaration.name!, tool));
 
@@ -68,6 +119,7 @@ export class TouriChatService {
         });
 
         this.history = history
+
     }
 
     /**
@@ -95,12 +147,15 @@ export class TouriChatService {
                 },
             ],
             systemInstruction: {
-                text: "You are a helpful AI assistant for a tourism app called Touri. You have access to tools to help users find places and get information. Remember all previous conversation context and user details throughout our conversation."
-            }
+                text: SYSTEM_PROMPT
+            },
+            // thinkingConfig: {
+            //     thinkingBudget: -1
+            // }
         };
     }
 
-    async sendMessage(message: string) {
+    async sendMessage(parts: Part[]) {
         if (this.isGenerating) {
             return // Break if the chat is still generating
         }
@@ -109,14 +164,14 @@ export class TouriChatService {
         try {
             // Add user message to history
             this.history.push({
-                parts: [
-                    { text: message }
-                ],
+                parts,
                 role: "user"
             })
 
             // Notify about history change before generating response
             this.onHistoryChange([...this.history]);
+
+            // TODO: Handle Files
 
             const response = await this.ai.models.generateContentStream({
                 model: MODEL,
@@ -136,6 +191,7 @@ export class TouriChatService {
         let hasStarted = false;
         let fullAssistantResponse = '';
 
+        // TOOD: Handle Reasoning
         for await (const chunk of response) {
             if (chunk.functionCalls) {
                 const toolParts = await this.executeTools(chunk.functionCalls);
@@ -171,7 +227,7 @@ export class TouriChatService {
                 parts: [{ text: fullAssistantResponse }],
                 role: "model"
             });
-            
+
             // Notify about history change
             this.onHistoryChange(this.history);
         }
@@ -196,6 +252,8 @@ export class TouriChatService {
                         },
                     },
                 });
+
+                
                 continue;
             }
 
@@ -209,6 +267,13 @@ export class TouriChatService {
                         response: result,
                     },
                 });
+
+                if (toolName === "get_nearby_place" || toolName === "search_place") {
+                    if (result && (result as any).locations) {
+                        this.onSpotChange((result as any).locations as Spot[]);
+                    }
+                }
+
             } catch (error) {
                 toolResponses.push({
                     functionResponse: {

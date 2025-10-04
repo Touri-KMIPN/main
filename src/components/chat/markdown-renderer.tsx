@@ -4,11 +4,13 @@ import * as React from "react"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
 import rehypeRaw from "rehype-raw"
-import { HoverSpot, Spot } from "./hover-spot"
+import { HoverSpot } from "./hover-spot"
+import { useSpots } from "@/providers/SpotsProvider"
+import { Spot } from "@/types/spot"
 
 type MarkdownLLMProps = {
   markdown: string
-  spotsById?: Record<string, Spot>
+  spots?: Spot[]
 }
 
 /**
@@ -27,9 +29,9 @@ function injectSpotTags(md: string) {
   })
 }
 
-export function MarkdownLLM({ markdown, spotsById = {} }: MarkdownLLMProps) {
+export function MarkdownLLM({ markdown, spots = [] }: MarkdownLLMProps) {
   const prepared = React.useMemo(() => injectSpotTags(markdown), [markdown])
-
+  
   return (
     <ReactMarkdown
       // Enable GFM (tables, lists, strikethrough)
@@ -41,8 +43,8 @@ export function MarkdownLLM({ markdown, spotsById = {} }: MarkdownLLMProps) {
         // @ts-expect-error - react-markdown doesn't type custom tags strongly
         spot: ({ node, children, ...props }) => {
           const id = (props as any)["data-id"] as string | undefined
-          const label = typeof children?.[0] === "string" ? (children?.[0] as string) : String(children)
-          const spot = id ? spotsById[id] : undefined
+          const label = typeof children?.[0] === "string" ? (children as string) : String(children)
+          const spot = id ? spots.find(s => s.id === id) : undefined
           return <HoverSpot label={label} spot={spot} />
         },
         h1: ({ node, ...props }) => <h1 className="scroll-m-20 text-center text-4xl font-extrabold tracking-tight text-balance" {...props} />,

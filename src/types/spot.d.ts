@@ -1,9 +1,12 @@
 export interface Spot {
+  id: string
   types: string[]
   formattedAddress: string
   location: Location
+  rating: number
   displayName: DisplayName
-  photos?: Photo[]
+  photos: Photo[],
+  googleMapsUri: string
 }
 
 export interface Location {

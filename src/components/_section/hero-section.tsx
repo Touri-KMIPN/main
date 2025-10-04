@@ -1,5 +1,5 @@
 import {
-    MapIcon,
+  MapIcon,
   MapPinCheckIcon,
   MessageCircleIcon,
   SparklesIcon,
@@ -8,6 +8,7 @@ import {
 import React from "react";
 import { Button } from "../ui/button";
 import Image from "next/image";
+import Link from "next/link";
 
 export default function HeroSection() {
   return (
@@ -32,14 +33,16 @@ export default function HeroSection() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-              <Button size="lg" className="text-base px-8 h-12 rounded-xl">
-                <MapIcon />
-                Start Touring
-              </Button>
+              <Link href={"/chat"}>
+                <Button size="lg" className="text-base px-8 h-12 rounded-full">
+                  <MapIcon />
+                  Start Your Journey
+                </Button>
+              </Link>
               <Button
                 size="lg"
                 variant="outline"
-                className="text-base px-8 h-12 rounded-xl bg-transparent"
+                className="text-base px-8 h-12 rounded-full bg-transparent"
               >
                 Learn More
               </Button>
