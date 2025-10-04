@@ -85,43 +85,29 @@ export default function PromptInput({ onSend, loading }: PromptInput) {
                 </Popover>
                 <div className='flex gap-2'>
                     <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Link href="/multimodal">
-                                    <Button
-                                        disabled={loading}
-                                        size="icon"
-                                        className='size-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600'
-                                        onClick={handleSend} >
-                                        <EyeIcon />
-                                    </Button>
-                                </Link>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p>Magic Vision</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
-                    <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button
-                                    disabled={loading}
-                                    size="icon"
-                                    className='size-8 rounded-full'
-                                    onClick={handleSend} >
-                                    {loading
-                                        ? <Loader2 className='animate-spin' />
-                                        : <SendIcon />
-                                    }
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p>Send</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
+                        <Link href="/multimodal">
+                            <Button
+                                disabled={loading}
+                                size="sm"
+                                className='h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600'
+                                onClick={handleSend} >
 
+                                Magic Vision
+                                <EyeIcon />
+                            </Button>
+                        </Link>
+                        <Button
+                            disabled={loading}
+                            size="sm"
+                            className='h-8 rounded-full'
+                            onClick={handleSend}>
+                            Send
+                            {loading
+                                ? <Loader2 className='animate-spin' />
+                                : <SendIcon />
+                            }
+                        </Button>
+                    </TooltipProvider>
                 </div>
             </div>
         </div>
