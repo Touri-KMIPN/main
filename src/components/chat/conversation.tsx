@@ -1,21 +1,25 @@
-import { useSpots } from '@/providers/SpotsProvider'
-import { TouriChatService } from '@/services/TouriChatService'
-import { Message } from '@/types/chat'
-import { Tool } from '@/types/tool'
-import React, { useEffect, useRef, useState } from 'react'
-import { ScrollArea } from '../ui/scroll-area'
+import {useSpots} from '@/providers/SpotsProvider'
+import {TouriChatService} from '@/services/client/TouriChatService'
+import {Message} from '@/types/chat'
+import {CallableTool} from '@/types/tool'
+import React, {useEffect, useRef, useState} from 'react'
+import {ScrollArea} from '../ui/scroll-area'
 import ChatMessage from './chat-message'
 import PromptInput from './prompt-input'
-import { Part } from '@google/genai'
+import {Part} from '@google/genai'
 
 type ConversationProps = {
     messages: Message[],
     setMessages: React.Dispatch<React.SetStateAction<Message[]>>,
-    tools: Tool[]
+    tools: CallableTool[]
 }
 
-export default function Conversation({ messages, setMessages, tools }: ConversationProps) {
-    const { spots, setSpots } = useSpots()
+/**
+ * !!!DEPRECATION WARNING!!!
+ * This component is still using old sdk for communication please use `Conversation` from `conversation-v2.tsx` instead
+ */
+export default function Conversation({messages, setMessages, tools}: ConversationProps) {
+    const {spots, setSpots} = useSpots()
     const chatServiceRef = useRef<TouriChatService | null>(null)
 
 
@@ -38,20 +42,21 @@ export default function Conversation({ messages, setMessages, tools }: Conversat
                         // append to existing assistant message
                         return [
                             ...prev.slice(0, -1),
-                            { role: 'assistant', text: last.text + chunk },
+                            {role: 'assistant', text: last.text + chunk},
                         ];
                     } else {
                         // create new assistant message if none exists
-                        return [...prev, { role: 'assistant', text: chunk }];
+                        return [...prev, {role: 'assistant', text: chunk}];
                     }
                 });
             },
-            () => { /* response ended */ },
+            () => { /* response ended */
+            },
             () => {
                 /* response started */
                 setMessages((prev) => {
                     const filtered = prev.filter(msg => !(msg.role === 'assistant' && msg.text === ''));
-                    return [...filtered, { role: 'assistant', text: '' }];
+                    return [...filtered, {role: 'assistant', text: ''}];
                 });
             },
             tools /* tools */,
@@ -70,7 +75,7 @@ export default function Conversation({ messages, setMessages, tools }: Conversat
                 .concat(
                     parts
                         .filter(part => part.text != null)
-                        .map(part => ({ role: 'user', text: part.text! }))
+                        .map(part => ({role: 'user', text: part.text!}))
                 )
         );
 
@@ -84,9 +89,12 @@ export default function Conversation({ messages, setMessages, tools }: Conversat
                     ? (<>
                         <div className='h-[calc(100vh-8rem)] max-w-sm mx-auto flex justify-center items-center'>
                             <h1 className='text-3xl text-center'>
-                                Hi! I'm <span className='font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent'>Touri</span>, your travel assistant. How can I help you today?
+                                Hi! I'm <span
+                                className='font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent'>Touri</span>,
+                                your travel assistant. How can I help you today?
                             </h1>
-                        </div></>)
+                        </div>
+                    </>)
                     : messages
                         .filter(m => m.role === "user" || m.role === "assistant")
                         .map((msg, index) => (
@@ -95,7 +103,7 @@ export default function Conversation({ messages, setMessages, tools }: Conversat
             </ScrollArea>
             <div className='fixed bottom-0 left-0 right-0 h-32'>
                 <div className='max-w-screen-sm mx-auto p-4 z-10'>
-                    <PromptInput onSend={handleSend} loading={false} />
+                    <PromptInput onSend={handleSend} loading={false}/>
                 </div>
             </div>
         </div>

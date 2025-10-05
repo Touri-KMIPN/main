@@ -4,10 +4,9 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { SparkleIcon, SparklesIcon, User2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { MarkdownLLM } from './markdown-renderer'
-import { Separator } from '../ui/separator'
 import { useSpots } from '@/providers/SpotsProvider'
 
-export default function ChatMessage({ text, role }: Message) {
+export default function ChatMessage({ text, role, isLoading = false }: Message & {isLoading?: boolean}) {
   const {spots} = useSpots()
   console.log("SPots,", spots)
   return (
@@ -24,7 +23,7 @@ export default function ChatMessage({ text, role }: Message) {
           </AvatarFallback>
         </Avatar>
         <div className={cn(role === "user" && "bg-muted p-2 rounded-l-lg rounded-br-lg w-fit")}>
-          <MarkdownLLM markdown={text} spots={spots} />
+          <MarkdownLLM markdown={text} spots={spots} /> {isLoading && <span className='animate-pulse'>█</span>}
         </div>
       </div>
     </div>

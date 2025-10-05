@@ -1,18 +1,9 @@
-import {
-    Chat,
-    Content,
-    FunctionCall,
-    GenerateContentConfig,
-    GenerateContentResponse,
-    GoogleGenAI,
-    Part,
-} from "@google/genai";
-import type { Tool } from "@/types/tool";
+import { Content, FunctionCall, GenerateContentConfig, GenerateContentResponse, GoogleGenAI, Part } from "@google/genai";
+import { ITouriChatService } from "../../../../services/server/ITouriChatService";
 import { Spot } from "@/types/spot";
-import { SearchPlaceTools, GetUserLocationTool, ReverseGeocodingTool } from "@/tools/MapTools";
-import { SpotsProviderContext, useSpots } from "@/providers/SpotsProvider";
+import { CallableTool_2, CallableToolRequestContext } from "@/types/tool";
+import { zodToFunctionDeclaration } from "@/lib/function";
 
-const MODEL = "gemini-2.5-flash";
 const SYSTEM_PROMPT = `
                 Your name is Touri, an AI assistant for a tourism app.
                 You are a helpful AI assistant for a tourism app called Touri.
@@ -63,152 +54,139 @@ const SYSTEM_PROMPT = `
                 - "what's the best pizza place?" → use search_place with textQuery: "best pizza restaurant"
                 `
 
-export class TouriChatService {
-    /**
-     * Utility to listen to spot addition
-     */
-    onSpotChange: (spots: Spot[]) => void;
 
-    /**
-     * Utility to listen to history change
-     */
-    onHistoryChange: (memory: Content[]) => void;
-
-    /**
-     * Utility to listen to response stream
-     */
-    onResponseStream: (chunk: string) => void;
-    onResponseEnd: () => void;
-    onResponseStart: () => void;
-
-    tools: Map<string, Tool> = new Map();
+export class TouriChatService_2 implements ITouriChatService {
+    isGenerating: boolean = false;
     ai: GoogleGenAI;
-    chat: Chat;
-
-    history: Content[] = [];
-    isGenerating = false;
+    history: Content[];
+    tools: Map<string, CallableTool_2>;
+    context: CallableToolRequestContext;
+    onSpotAddition: (spots: Spot[]) => void;
+    onHistoryChange: (memory: Content[]) => void;
+    onHistoryPush: (memory: Content) => void;
+    onResponseStream: (chunk: string) => void;
+    onResponseStart: () => void;
+    onResponseEnd: () => void;
+    onGenerationStart: () => void;
+    onGenerationEnd: () => void;
 
     constructor(
-        onSpotChange: (spots: Spot[]) => void,
-        onMemoryChange: (memory: Content[]) => void,
+        context: CallableToolRequestContext = { caller: "chat" },
+        tools: CallableTool_2[] = [],
+        onSpotAddition: (spots: Spot[]) => void,
+        onHistoryChange: (memory: Content[]) => void,
+        onHistoryPush: (memory: Content) => void,
         onResponseStream: (chunk: string) => void,
-        onResponseEnd: () => void,
         onResponseStart: () => void,
-        tools: Tool[] = [],
-        history: Content[] = []
+        onResponseEnd: () => void,
+        onGenerationStart: () => void,
+        onGenerationEnd: () => void,
     ) {
-        this.onSpotChange = onSpotChange;
-        this.onHistoryChange = onMemoryChange;
+        this.ai = new GoogleGenAI({
+            apiKey: process.env.GOOGLE_GENAI_API_KEY!,
+        });
+        this.history = [];
+        this.context = context;
+        this.onSpotAddition = onSpotAddition;
+        this.onHistoryChange = onHistoryChange;
         this.onResponseStream = onResponseStream;
         this.onResponseEnd = onResponseEnd;
         this.onResponseStart = onResponseStart;
+        this.onHistoryPush = onHistoryPush;
+        this.onGenerationStart = onGenerationStart;
+        this.onGenerationEnd = onGenerationEnd;
 
-        this.ai = new GoogleGenAI({
-            apiKey: process.env.NEXT_PUBLIC_GOOGLE_API_KEY!,
-        });
-
-        tools
-            .concat([SearchPlaceTools, GetUserLocationTool, ReverseGeocodingTool]) // always include all map tools
-            .filter((tool) => tool.declaration.name != null)
-            .forEach((tool) => this.tools.set(tool.declaration.name!, tool));
-
-        this.chat = this.ai.chats.create({
-            model: MODEL,
-            history: this.history,
-            config: this.createConfig(),
-        });
-
-        this.history = history
-
+        // Convert tools array to a Map for easier access
+        this.tools = new Map(tools.map(tool => [tool.name, tool]));
     }
 
-    /**
-     * Mengambil deklarasi fungsi dari Map
-     * @returns 
-     */
-    private getFunctionDeclarations() {
-        return Array.from(this.tools.values()).map((tool) => tool.declaration);
+    pushHistory(content: Content) {
+        this.history.push(content);
+        this.onHistoryPush(content);
+        this.onHistoryChange(this.history);
     }
 
-    /**
-     * Membuat Konfigurasi Gemini
-     * @returns 
-     */
-    private createConfig(): GenerateContentConfig | undefined {
-        const declarations = this.getFunctionDeclarations();
-        if (declarations.length === 0) {
-            return undefined;
-        }
+    pushSpot(spots: Spot[]) {
+        this.onSpotAddition(spots);
+    }
 
+    endGeneration() {
+        this.onGenerationEnd();
+        this.isGenerating = false;
+    }
+
+    startGeneration() {
+        this.isGenerating = true;
+        this.onGenerationStart();
+    }
+
+    createConfig(): GenerateContentConfig {
         return {
+            thinkingConfig: {
+                thinkingBudget: -1
+            },
+            systemInstruction: SYSTEM_PROMPT,
             tools: [
                 {
-                    functionDeclarations: declarations,
-                },
-            ],
-            systemInstruction: {
-                text: SYSTEM_PROMPT
-            },
-            // thinkingConfig: {
-            //     thinkingBudget: -1
-            // }
-        };
+                    functionDeclarations:
+                        Array.from(this.tools).map(([_, tool]) => zodToFunctionDeclaration({
+                            name: tool.name,
+                            description: tool.description,
+                            schema: tool.schema,
+                        }))
+                }
+            ]
+        }
     }
 
-    async sendMessage(parts: Part[]) {
+    async sendMessage(parts: Part[]): Promise<void> {
         if (this.isGenerating) {
             return // Break if the chat is still generating
         }
 
-        this.isGenerating = true
+        this.pushHistory({
+            parts,
+            role: 'user'
+        });
+
         try {
-            // Add user message to history
-            this.history.push({
-                parts,
-                role: "user"
-            })
-
-            // Notify about history change before generating response
-            this.onHistoryChange([...this.history]);
-
-            // TODO: Handle Files
-
             const response = await this.ai.models.generateContentStream({
-                model: MODEL,
+                model: 'gemini-2.5-flash',
                 contents: this.history,
                 config: this.createConfig()
-            })
+            });
 
-            await this.handleMessage(response)
+            this.startGeneration();
+            await this.handleMessage(response);
         } catch (error) {
-            console.error("Error sending message:", error)
+            console.error("Error during message generation:", error);
         } finally {
-            this.isGenerating = false
+            this.endGeneration();
         }
+
+
     }
-
-    async handleMessage(response: AsyncGenerator<GenerateContentResponse>) {
+    async handleMessage(response: AsyncGenerator<GenerateContentResponse>): Promise<void> {
         let hasStarted = false;
-        let fullAssistantResponse = '';
+        let fullResponse = ''
 
-        // TOOD: Handle Reasoning
         for await (const chunk of response) {
             if (chunk.functionCalls) {
-                const toolParts = await this.executeTools(chunk.functionCalls);
-
-                this.history.push({
+                const toolParts = await this.handleToolCalls(chunk.functionCalls, this.context);
+                this.pushHistory({
                     parts: toolParts,
-                    role: "function"
+                    role: 'function'
                 });
 
-                const toolResponse = await this.ai.models.generateContentStream({
-                    model: MODEL,
+                // After handling tool calls, continue the conversation with the updated history
+                const followUpResponse = await this.ai.models.generateContentStream({
+                    model: 'gemini-2.5-flash',
                     contents: this.history,
                     config: this.createConfig()
-                })
+                });
 
-                await this.handleMessage(toolResponse)
-                return; // Return early to avoid adding incomplete response to history
+                await this.handleMessage(followUpResponse);
+                return; // Exit after handling tool calls and follow-up
             }
 
             if (chunk.text) {
@@ -216,78 +194,76 @@ export class TouriChatService {
                     this.onResponseStart();
                     hasStarted = true;
                 }
-                fullAssistantResponse += chunk.text;
-                this.onResponseStream(chunk.text)
+                fullResponse += chunk.text;
+                this.onResponseStream(chunk.text);
             }
         }
 
-        // Add the complete assistant response to history
-        if (fullAssistantResponse) {
-            this.history.push({
-                parts: [{ text: fullAssistantResponse }],
-                role: "model"
+        // Add the complete response to history after the loop finishes
+        if (fullResponse) {
+            this.pushHistory({
+                parts: [{ text: fullResponse }],
+                role: 'model'
             });
-
-            // Notify about history change
-            this.onHistoryChange(this.history);
         }
 
         this.onResponseEnd();
     }
 
-
-    private async executeTools(functionCalls: FunctionCall[]): Promise<Part[]> {
+    async handleToolCalls(calls: FunctionCall[], context: CallableToolRequestContext): Promise<Part[]> {
         const toolResponses: Part[] = [];
 
-        for (const call of functionCalls) {
-            const toolName = call.name ?? "";
+        for (const call of calls) {
+            const toolName = call.name ?? ""
             const tool = this.tools.get(toolName);
 
             if (!tool) {
                 toolResponses.push({
                     functionResponse: {
                         name: toolName,
+                        id: call.id,
                         response: {
-                            error: `Tool "${toolName}" is not registered.`,
-                        },
-                    },
-                });
+                            error: `Tool ${toolName} not found`
+                        }
+                    }
+                })
 
-                
                 continue;
             }
 
             try {
-                const args = (call.args ?? {}) as FunctionCall["args"];
-                const result = await tool.execute(args);
+                const executeResult = await tool.execute(call.args ?? {}, context);
                 toolResponses.push({
                     functionResponse: {
-                        id: call.id,
                         name: toolName,
-                        response: result,
-                    },
+                        id: call.id,
+                        response: {
+                            result: executeResult
+                        }
+                    }
                 });
 
-                if (toolName === "get_nearby_place" || toolName === "search_place") {
-                    if (result && (result as any).locations) {
-                        this.onSpotChange((result as any).locations as Spot[]);
-                    }
+                // If the tool returns spots, push them
+                if (executeResult && 'spots' in executeResult) {
+                    this.pushSpot(executeResult.spots as Spot[]);
                 }
 
             } catch (error) {
+                console.error("[TouriChatService] Error executing tool", toolName, error);
                 toolResponses.push({
                     functionResponse: {
-                        id: call.id,
                         name: toolName,
+                        id: call.id,
                         response: {
-                            error: error instanceof Error ? error.message : "Unknown tool execution error.",
-                        },
-                    },
-                });
+                            error: (error as Error).message
+                        }
+                    }
+
+                })
             }
         }
 
-        return toolResponses;
+        return toolResponses
     }
-}
 
+}

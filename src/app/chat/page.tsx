@@ -1,5 +1,5 @@
 "use client";
-import Conversation from '@/components/chat/conversation';
+import Conversation from '@/components/chat/conversation-v2';
 import { SpotsProvider } from '@/providers/SpotsProvider';
 import { Message } from '@/types/chat';
 import { useKindeAuth } from '@kinde-oss/kinde-auth-nextjs'
@@ -17,7 +17,8 @@ export default function Page() {
     return (
         <SpotsProvider>
             <div className='max-w-screen-sm mx-auto'>
-                <Conversation tools={[]} messages={message} setMessages={setMessage} />
+                {/* <Conversation tools={[]} messages={message} setMessages={setMessage} /> */}
+                <Conversation messages={message} setMessages={setMessage} />
             </div>
         </SpotsProvider>
     )

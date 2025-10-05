@@ -27,6 +27,8 @@ export default function PromptInput({ onSend, loading }: PromptInput) {
     const [input, setInput] = React.useState("")
     const [files, setFiles] = React.useState<File[]>([])
 
+    console.log(files)
+
     const addFile = (file: File) => {
         setFiles((prev) => [...prev, file])
     }
@@ -41,20 +43,23 @@ export default function PromptInput({ onSend, loading }: PromptInput) {
         setInput('')
     }
 
+    // TODO: FILE PREVIEW
+
     return (
         <div className='flex flex-col gap-2 p-2 rounded-lg bg-background border'>
-            <input
+            <textarea
                 autoFocus
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                type="text"
                 onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !loading) {
+                    if (e.key === 'Enter' && !e.shiftKey && !loading) {
+                        e.preventDefault()
                         handleSend()
                     }
                 }}
                 placeholder='Type your message...'
-                className='p-2 flex-1 h-12 border-none focus:ring-0 focus:outline-none'
+                className='p-2 flex-1 min-h-12 border-none focus:ring-0 focus:outline-none resize-none'
+                rows={1}
             />
             <div className='flex justify-between gap-2'>
                 <Popover>
