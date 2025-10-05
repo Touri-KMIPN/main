@@ -6,8 +6,8 @@ import Link from "next/link";
 
 export default function Navbar() {
   return (
-    <header className="w-full z-50 xl:pt-4">
-      <div className="bg-background max-w-7xl py-4 px-4 lg:px-8 xl:rounded-full mx-auto flex items-center justify-between border">
+    <header className="fixed w-full z-50 xl:pt-4">
+      <div className="bg-background/80 backdrop-blur-sm max-w-7xl py-2 px-4 lg:px-8 xl:rounded-full mx-auto flex items-center justify-between border">
         <Link href={"/"} className="flex items-center gap-2 focus:outline-none">
           <div className="flex items-center gap-2">
             <Image

@@ -1,0 +1,58 @@
+export const destinations = [
+  {
+    name: "Bali",
+    description: "Pulau Dewata dengan pantai eksotis dan budaya yang kaya",
+    image: "/beautiful-bali-rice-terraces-at-sunset-with-tradit.jpg",
+    attractions: "250+ Tempat",
+    rating: 4.9,
+  },
+  {
+    name: "Yogyakarta",
+    description: "Kota budaya dengan candi bersejarah dan kuliner legendaris",
+    image: "/borobudur-temple-sunrise.jpg",
+    attractions: "180+ Tempat",
+    rating: 4.8,
+  },
+  {
+    name: "Raja Ampat",
+    description: "Surga bawah laut dengan keindahan alam yang menakjubkan",
+    image: "/raja-ampat-turquoise-water.jpg",
+    attractions: "120+ Tempat",
+    rating: 5.0,
+  },
+  {
+    name: "Lombok",
+    description: "Pantai pristine dan Gunung Rinjani yang megah",
+    image: "/lombok-beach-mount-rinjani-indonesia.jpg",
+    attractions: "150+ Tempat",
+    rating: 4.7,
+  },
+  {
+    name: "Labuan Bajo",
+    description: "Gerbang menuju Komodo dan pulau-pulau eksotis",
+    image: "/labuan-bajo-komodo-island-sunset.jpg",
+    attractions: "95+ Tempat",
+    rating: 4.8,
+  },
+  {
+    name: "Bandung",
+    description: "Kota kembang dengan udara sejuk dan kuliner khas",
+    image: "/bandung-city-tea-plantation-mountains.jpg",
+    attractions: "200+ Tempat",
+    rating: 4.6,
+  },
+  {
+    name: "Bromo",
+    description: "Gunung berapi aktif dengan sunrise spektakuler",
+    image: "/mount-bromo-sunrise-volcano-indonesia.jpg",
+    attractions: "45+ Tempat",
+    rating: 4.9,
+  },
+  {
+    name: "Wakatobi",
+    description: "Destinasi diving terbaik dengan terumbu karang indah",
+    image: "/wakatobi-underwater-coral-reef-diving.jpg",
+    attractions: "80+ Tempat",
+    rating: 4.8,
+  },
+];
