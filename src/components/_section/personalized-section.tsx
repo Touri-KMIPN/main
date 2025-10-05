@@ -6,14 +6,14 @@ export function PersonalizedSection() {
   return (
     <section className="py-32 bg-muted">
       <div className="grid lg:grid-cols-3 px-6 max-w-6xl gap-12 mx-auto w-full items-center ">
-        <div className="mx-auto w-full order-2 lg:order-1 animate-bounce-slow">
+        <div className="mx-auto w-full order-2 lg:order-1">
           <PhoneMockup />
         </div>
 
         {/* Content */}
         <div className="space-y-6 lg:col-span-2 order-1 lg:order-2">
-          <h2 className="text-4xl lg:text-5xl text-primary font-bold text-balance">
-            Personalized Only For You
+          <h2 className="text-4xl lg:text-5xl text-primary font-semibold text-balance">
+            Personalized Only For You!
           </h2>
 
           <p className="text-lg text-muted-foreground leading-relaxed">

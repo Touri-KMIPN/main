@@ -22,7 +22,7 @@ export default function HeroSection() {
             </div>
 
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-foreground leading-tight text-balance">
-              Your Tour Guide In Your Pocket with {" "}
+              Your Tour Guide In Your Pocket with{" "}
               <span className="text-primary">Touri</span>!
             </h1>
 
@@ -68,7 +68,7 @@ export default function HeroSection() {
             {/* Main image card */}
             <div className="relative rounded-3xl overflow-hidden shadow-2xl">
               <Image
-                src="/beautiful-bali-rice-terraces-at-sunset-with-tradit.jpg"
+                src="/images/beautiful-bali-rice-terraces-at-sunset-with-tradit.jpg"
                 alt="Bali Indonesia"
                 width={500}
                 height={600}
@@ -83,8 +83,8 @@ export default function HeroSection() {
                   <div className="space-y-2 flex-1">
                     <p className="text-sm font-medium">Touri AI</p>
                     <p className="text-sm text-muted-foreground leading-relaxed">
-                      Saya menemukan 5 tempat tersembunyi di Bali yang sempurna
-                      untuk fotografi! Mau lihat rekomendasinya?
+                      I found 5 hidden spots in Bali that are perfect for
+                      photography! Want to see the recommendations?
                     </p>
                   </div>
                 </div>
@@ -95,16 +95,16 @@ export default function HeroSection() {
             <div className="hidden md:block absolute -top-6 -right-6 bg-background rounded-2xl p-4 shadow-xl border border-border">
               <DestinationCard
                 title="Raja Ampat"
-                subTitle="Papua Barat"
-                imageUrl="/raja-ampat-turquoise-water.jpg"
+                subTitle="West Papua"
+                imageUrl="/images/raja-ampat-turquoise-water.jpg"
               />
             </div>
 
             <div className="hidden md:block absolute -bottom-6 -left-6 bg-background rounded-2xl p-4 shadow-xl border border-border">
               <DestinationCard
                 title="Borobudur"
-                subTitle="Jawa Tengah"
-                imageUrl="/borobudur-temple-sunrise.jpg"
+                subTitle="Central Java"
+                imageUrl="/images/borobudur-temple-sunrise.jpg"
               />
             </div>
           </div>
