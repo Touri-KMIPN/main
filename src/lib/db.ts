@@ -1,5 +1,4 @@
-import { PrismaClient } from '@/generated/prisma'
+import { MongoClient } from 'mongodb'
 
-export const db = new PrismaClient()
-
-export type DbClient = typeof db
+export const $mongoClient = new MongoClient(process.env.DATABASE_URI || '')
+export const $mongo = $mongoClient.db(process.env.DATABASE_NAME || 'touri-db')

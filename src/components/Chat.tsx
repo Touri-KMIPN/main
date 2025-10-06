@@ -1,6 +1,6 @@
 "use client"
 import React, { useState, useEffect, useRef } from 'react';
-import { TouriChatService } from '@/services/client/TouriChatService';
+import { TouriChatService } from '@/services/client/TouriChatService_deprecated';
 import type { CallableTool } from '@/types/tool';
 import { MarkdownLLM } from './chat/markdown-renderer';
 import { Message } from '@/types/chat';

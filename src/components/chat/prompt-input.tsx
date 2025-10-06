@@ -16,6 +16,7 @@ import {
 import {CloudUploadIcon, EyeIcon, Loader2, PaperclipIcon, SendIcon} from 'lucide-react'
 import Link from 'next/link'
 import FilePreview from "@/components/chat/file-preview";
+import {cn} from "@/lib/utils";
 
 type PromptInput = {
     onSend: (message: string, files: File[]) => void
@@ -43,7 +44,7 @@ export default function PromptInput({onSend, loading}: PromptInput) {
 
     return (
         <div className='flex flex-col gap-2 p-2 rounded-lg bg-background border'>
-            <div className='flex gap-2 overflow-x-auto'>
+            <div className={cn('flex gap-2 overflow-x-auto', files.length === 0 && 'hidden')}>
                 {files.map((file, index) => (
                     <div key={index} className='relative'>
                         <FilePreview

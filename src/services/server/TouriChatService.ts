@@ -1,9 +1,12 @@
-import {Content, FunctionCall, GenerateContentConfig, GenerateContentResponse, GoogleGenAI, Part} from "@google/genai";
-import {ITouriChatService} from "./ITouriChatService";
-import {Spot} from "@/types/spot";
-import {CallableTool_2, CallableToolRequestContext} from "@/types/tool";
-import {zodToFunctionDeclaration} from "@/lib/function";
-import {FileUpload} from "@/app/api/ai/generate/schemas";
+import { Content, FunctionCall, GenerateContentConfig, GenerateContentResponse, GoogleGenAI, Part } from "@google/genai";
+import { Spot } from "@/types/spot";
+import { CallableTool_2, CallableToolRequestContext } from "@/types/tool";
+import { zodToFunctionDeclaration } from "@/lib/function";
+import { FileUpload } from "@/app/api/ai/generate/schemas";
+import { MemoryService } from "@/services/server/MemoryService";
+import { KindeUser } from "@kinde-oss/kinde-auth-nextjs";
+import { ContentDocument } from "@/database/collections/contents";
+import { SessionDocument } from "@/database/collections/sessions";
 
 const SYSTEM_PROMPT = `
                 Your name is Touri, an AI assistant for a tourism app.
@@ -56,40 +59,64 @@ const SYSTEM_PROMPT = `
                 `
 
 
-export class TouriChatService implements ITouriChatService {
+export class TouriChatService {
     isGenerating: boolean = false;
+    sessionId: string | null = null;
     ai: GoogleGenAI;
-    history: Content[];
+    history: ContentDocument[];
     tools: Map<string, CallableTool_2>;
     context: CallableToolRequestContext;
     onSpotAddition: (spots: Spot[]) => void;
-    onHistoryChange: (memory: Content[]) => void;
-    onHistoryPush: (memory: Content) => void;
+    onHistoryChange: (memory: ContentDocument[]) => void;
+    onHistoryPush: (memory: ContentDocument) => void;
     onResponseStream: (chunk: string) => void;
     onResponseStart: () => void;
     onResponseEnd: () => void;
     onGenerationStart: () => void;
     onGenerationEnd: () => void;
     onThoughtStream: (thought: string) => void;
+    onSessionCreation: (session: SessionDocument) => void
+    memoryService: MemoryService
 
     constructor(
-        context: CallableToolRequestContext = {caller: "chat"},
-        tools: CallableTool_2[] = [],
-        onSpotAddition: (spots: Spot[]) => void,
-        onHistoryChange: (memory: Content[]) => void,
-        onHistoryPush: (memory: Content) => void,
-        onResponseStream: (chunk: string) => void,
-        onResponseStart: () => void,
-        onResponseEnd: () => void,
-        onGenerationStart: () => void,
-        onGenerationEnd: () => void,
-        onThoughtStream: (thought: string) => void,
+        {
+            sessionId,
+            user,
+            onGenerationStart,
+            onResponseStart,
+            onResponseStream,
+            onResponseEnd,
+            onGenerationEnd,
+            onThoughtStream,
+            tools,
+            onHistoryChange,
+            onHistoryPush,
+            onSpotAddition,
+            onSessionCreation
+        }: {
+            sessionId: string | null,
+            user: KindeUser<Record<string, any>>,
+            tools: CallableTool_2[],
+            onSpotAddition: (spots: Spot[]) => void,
+            onHistoryChange: (memory: Content[]) => void,
+            onHistoryPush: (memory: Content) => void,
+            onResponseStream: (chunk: string) => void,
+            onResponseStart: () => void,
+            onResponseEnd: () => void,
+            onGenerationStart: () => void,
+            onGenerationEnd: () => void,
+            onThoughtStream: (thought: string) => void,
+            onSessionCreation: (session: SessionDocument) => void
+        }
     ) {
         this.ai = new GoogleGenAI({
             apiKey: process.env.GOOGLE_GENAI_API_KEY!,
         });
         this.history = [];
-        this.context = context;
+        this.context = {
+            authenticatedUserId: user.id,
+            caller: "chat"
+        };
         this.onSpotAddition = onSpotAddition;
         this.onHistoryChange = onHistoryChange;
         this.onResponseStream = onResponseStream;
@@ -99,12 +126,22 @@ export class TouriChatService implements ITouriChatService {
         this.onGenerationStart = onGenerationStart;
         this.onGenerationEnd = onGenerationEnd;
         this.onThoughtStream = onThoughtStream;
+        this.onSessionCreation = onSessionCreation;
+        this.memoryService = new MemoryService();
+        this.sessionId = sessionId;
 
         // Convert tools array to a Map for easier access
         this.tools = new Map(tools.map(tool => [tool.name, tool]));
     }
 
-    pushHistory(content: Content) {
+    async pushHistory(content: ContentDocument) {
+        // Save to db
+        await this.memoryService.appendContentToSession(this.sessionId!, {
+            sessionId: this.sessionId!,
+            parts: content.parts,
+            role: content.role,
+        })
+
         this.history.push(content);
         this.onHistoryPush(content);
         this.onHistoryChange(this.history);
@@ -144,23 +181,48 @@ export class TouriChatService implements ITouriChatService {
         }
     }
 
+    async startChat() {
+        let session: SessionDocument | null = null
+        if (this.sessionId) {
+            session = await this.memoryService.getSessionById(this.sessionId);
+        } else {
+            // New session
+            const newSession = await this.memoryService.createSession("New Chat Session", this.context.authenticatedUserId!);
+            this.sessionId = newSession.id;
+            this.history = [];
+            this.onHistoryChange(this.history);
+            this.onSessionCreation(newSession)
+            session = newSession;
+        }
+
+        if (!session) {
+            throw new Error("Session not found");
+        }
+
+        const messages = await this.memoryService.getSessionMessages(session.id);
+
+        this.history = messages;
+        this.onHistoryChange(this.history);
+    }
+
     async sendMessage(message: string, files: FileUpload[]): Promise<void> {
         if (this.isGenerating) {
             return // Break if the chat is still generating
         }
 
         try {
-            this.pushHistory({
+            await this.pushHistory({
+                role: 'user',
                 parts: [
-                    {text: message},
-                    ...files.map(f => ({
+                    { text: message },
+                    ...files.map(file => ({
                         inlineData: {
-                            data: f.content,
-                            mimeType: f.mimeType,
+                            data: file.content,
+                            mimeType: file.mimeType,
+                            filename: file.name
                         }
-                    }))
-                ],
-                role: 'user'
+                    }))] as Part[],
+                sessionId: this.sessionId!,
             });
 
             const response = await this.ai.models.generateContentStream({
@@ -176,8 +238,6 @@ export class TouriChatService implements ITouriChatService {
         } finally {
             this.endGeneration();
         }
-
-
     }
 
     async handleMessage(response: AsyncGenerator<GenerateContentResponse>): Promise<void> {
@@ -187,9 +247,10 @@ export class TouriChatService implements ITouriChatService {
         for await (const chunk of response) {
             if (chunk.functionCalls) {
                 const toolParts = await this.handleToolCalls(chunk.functionCalls, this.context);
-                this.pushHistory({
+                await this.pushHistory({
+                    role: 'function',
                     parts: toolParts,
-                    role: 'function'
+                    sessionId: this.sessionId!
                 });
 
                 // After handling tool calls, continue the conversation with the updated history
@@ -224,9 +285,10 @@ export class TouriChatService implements ITouriChatService {
 
         // Add the complete response to history after the loop finishes
         if (fullResponse) {
-            this.pushHistory({
-                parts: [{text: fullResponse}],
-                role: 'model'
+            await this.pushHistory({
+                role: 'assistant',
+                parts: [{ text: fullResponse }],
+                sessionId: this.sessionId!,
             });
         }
 
@@ -268,7 +330,7 @@ export class TouriChatService implements ITouriChatService {
 
                 // If the tool returns spots, push them
                 if (executeResult && 'spots' in executeResult) {
-                    this.pushSpot(executeResult.spots as Spot[]);
+                    await this.pushSpot(executeResult.spots as Spot[]);
                 }
 
             } catch (error) {

@@ -3,11 +3,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { TouriChatService } from "@/services/server/TouriChatService";
 import { CallableTool_2 } from "@/types/tool";
 import { GetUserLocationTool, ReverseGeocodingTool, SearchPlaceTools } from "@/tools/MapTools";
-import {GenerateRequestBodySchema, GenerateRequestHeaderSchema} from "@/app/api/ai/generate/schemas";
-import {createSSEChunk} from "@/app/api/ai/generate/utils";
+import { GenerateRequestBodySchema, GenerateRequestHeaderSchema } from "@/app/api/ai/generate/schemas";
+import { createSSEChunk } from "@/app/api/ai/generate/utils";
+import { $mongo, $mongoClient} from "@/lib/db";
+import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 
-
-const TOOLS: CallableTool_2[] = [SearchPlaceTools,GetUserLocationTool,ReverseGeocodingTool]
+const TOOLS: CallableTool_2[] = [SearchPlaceTools, GetUserLocationTool, ReverseGeocodingTool]
 
 export async function POST(request: NextRequest) {
     // Validate headers
@@ -17,6 +18,12 @@ export async function POST(request: NextRequest) {
     }
 
     try {
+        const { getUser } = await getKindeServerSession()
+        const user = await getUser()
+        if (!user) {
+            return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 })
+        }
+
         // Validate body
         const body = GenerateRequestBodySchema.safeParse(await request.json())
         if (!body.success) {
@@ -31,57 +38,69 @@ export async function POST(request: NextRequest) {
             async start(controller) {
                 // Use the Google GenAI SDK to generate content based on the request body
 
-                const touriChatService = new TouriChatService(
-                    {
-                        caller: "chat",
-                        geoLocation: (headers.data.geolat && headers.data.geolng && headers.data.geolat.trim() && headers.data.geolng.trim()) ? {
-                            lat: headers.data.geolat.toString(),
-                            lng: headers.data.geolng.toString()
-                        } : undefined
-                    },
-                    TOOLS,
-                    (spots) => {
-                        /** OnSpotAddition */
+                const touriChatService = new TouriChatService({
+                    sessionId: headers.data.sessionId ?? null,
+                    onSpotAddition: (spots) => {
                         controller.enqueue(encoder.encode(createSSEChunk({
                             spots
                         } as Part)));
                     },
-                    (_) => {
-                        /** OnMemoryChange */
-                    },
-                    (_) => {
-                        /** OnMemoryChangePush */
-                    },
-                    (chunk) => {
-                        /** OnResponseStream */
+                    user,
+                    tools: TOOLS,
+                    onResponseStream: (chunk) => {
                         controller.enqueue(encoder.encode(createSSEChunk({
                             text: chunk,
                         } as Part)));
                     },
-                    () => {
-                        /** OnResponseStart */
-                    },
-                    () => {
+                    onResponseEnd: () => {
                         /** OnResponseEnd */
                     },
-                    () => { },
-                    () => {
-                        /** OnGenerationEnd */
-                        controller.enqueue(encoder.encode(createSSEChunk({
-                            finished: true
-                        } as Part)));
-                        controller.close();
+                    onResponseStart: () => {
+                        /** OnResponseStart */
                     },
-                    (thought) => {
-                        /** OnThoughtStream */
+                    onThoughtStream: (thought) => {
                         controller.enqueue(encoder.encode(createSSEChunk({
                             thoughtProcess: thought
                         } as Part)));
-                    }
-                )
+                    },
+                    async onGenerationStart() {
+                        /** OnGenerationStart */
+                        try {
+                            await $mongoClient.connect()
+                        } catch (error) {
+                            console.error('MongoDB connection error:', error);
+                        }
+                    },
+                    async onGenerationEnd() {
+                        /** OnGenerationEnd */
+                        try {
+                            controller.enqueue(encoder.encode(createSSEChunk({
+                                finished: true
+                            } as Part)));
+                            await $mongoClient.close()
+                        } catch (error) {
+                            console.error('MongoDB disconnection error:', error);
+                        }
+
+                        controller.close();
+                    },
+                    onSessionCreation: (session) => {
+                        /** OnSessionCreation */
+                        controller.enqueue(encoder.encode(createSSEChunk({
+                            sessionId: session.id
+                        } as Part)));
+                    },
+                    onHistoryChange(memory) {
+                        /** OnHistoryChange */
+                    },
+                    onHistoryPush(memory) {
+                        /** OnHistoryPush */
+                    },
+                })
+
+                await touriChatService.startChat();
 
                 await touriChatService.sendMessage(body.data.text, body.data.files || [])
-
             },
         })
 

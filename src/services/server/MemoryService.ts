@@ -1,57 +1,45 @@
-import {ChatSession, Message} from "@/generated/prisma"
-import {DbClient} from "@/lib/db";
+import { ContentDocument, contentsCollection } from "@/database/collections/contents";
+import { SessionDocument, sessionsCollection } from "@/database/collections/sessions";
 
 interface IMemoryService {
-    db: DbClient
+    getSessions(): Promise<SessionDocument[]>;
 
-    getSessions(): Promise<ChatSession[]>;
+    createSession(summary: string, userId: string): Promise<SessionDocument>;
 
-    getSessionById(sessionId: string): Promise<ChatSession | null>;
+    getSessionById(sessionId: string): Promise<SessionDocument | null>;
 
-    getSessionMessages(sessionId: string): Promise<Message[]>;
+    getSessionMessages(sessionId: string): Promise<ContentDocument[]>;
 
-    appendMessageToSession(sessionId: string, message: Message): Promise<void>;
+    appendContentToSession(sessionId: string, content: ContentDocument): Promise<void>;
 }
 
 export class MemoryService implements IMemoryService {
-    db: DbClient;
-
-    constructor(db: DbClient) {
-        this.db = db;
+    async getSessions(): Promise<SessionDocument[]> {
+        return sessionsCollection.find().toArray()
     }
 
-    getSessionById(sessionId: string): Promise<ChatSession | null> {
-        const session = this.db.chatSession.findUnique({
-            where: {id: sessionId},
-        });
-
-        return session ?? Promise.resolve(null);
+    async getSessionById(sessionId: string): Promise<SessionDocument | null> {
+        return sessionsCollection.findOne({ id: sessionId });
     }
 
-    getSessions(): Promise<ChatSession[]> {
-        return this.db.chatSession.findMany();
+    async createSession(summary: string, userId: string): Promise<SessionDocument> {
+        const newSession: SessionDocument = {
+            id: crypto.randomUUID(),
+            userId,
+            summary,
+            createdAt: new Date(),
+        };
+
+        await sessionsCollection.insertOne(newSession);
+
+        return newSession;
     }
 
-    getSessionMessages(sessionId: string): Promise<Message[]> {
-        return this.db.message.findMany({
-            where: {chatSessionId: sessionId},
-            orderBy: {createdAt: 'asc'}
-        });
+    async getSessionMessages(sessionId: string): Promise<ContentDocument[]> {
+        return contentsCollection.find({ sessionId }).toArray();
     }
 
-    appendMessageToSession(sessionId: string, message: Message): Promise<void> {
-        return this.db.message.create({
-            data: {
-                chatSessionId: sessionId,
-                role: message.role,
-                content: message.content,
-            }
-        }).then(() => Promise.resolve());
-    }
-
-    deleteMessage(messageId: string): Promise<void> {
-        return this.db.message.delete({
-            where: {id: messageId},
-        }).then(() => Promise.resolve());
+    async appendContentToSession(sessionId: string, content: ContentDocument): Promise<void> {
+        await contentsCollection.insertOne({ ...content, sessionId });
     }
 }

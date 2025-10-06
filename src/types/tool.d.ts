@@ -6,6 +6,7 @@ export interface CallableToolRequestContext {
         lng?: string
     },
     caller: "live" | "chat",
+    authenticatedUserId?: string,
     [key: string]: unknown
 }
 

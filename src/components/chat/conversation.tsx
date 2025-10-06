@@ -1,5 +1,5 @@
 import {useSpots} from '@/providers/SpotsProvider'
-import {TouriChatService} from '@/services/client/TouriChatService'
+import {TouriChatService} from '@/services/client/TouriChatService_deprecated'
 import {Message} from '@/types/chat'
 import {CallableTool} from '@/types/tool'
 import React, {useEffect, useRef, useState} from 'react'
