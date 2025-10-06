@@ -8,7 +8,7 @@ export default function PhoneMockup() {
         <div className="relative aspect-[9/16] bg-gradient-to-br from-primary/20 to-accent/20 rounded-[3rem] p-3 shadow-2xl">
           <div className="w-full h-full rounded-[2.5rem] overflow-hidden border">
             <Image
-              src="/MapBackground.webp"
+              src="/images/MapLayout.webp"
               alt="Touri App Interface"
               width={1000}
               height={1000}
