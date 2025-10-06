@@ -58,7 +58,7 @@ export class TouriClientChatService implements ITouriClientChatService {
             const reader = new FileReader();
             reader.readAsDataURL(file);
             reader.onload = () => {
-                const base64String = (reader.result as string).split(',')[1];
+                const base64String = (reader.result as string).split(',')[1]; // Remove the data:*/*;base64, part
                 resolve({
                     name: file.name,
                     content: base64String,

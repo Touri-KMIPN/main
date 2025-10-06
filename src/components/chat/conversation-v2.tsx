@@ -1,20 +1,20 @@
-import { useSpots } from '@/providers/SpotsProvider'
-import { TouriClientChatService } from '@/services/client/TouriClientChatService'
-import { Message } from '@/types/chat'
-import { Spot } from '@/types/spot'
-import React, { useEffect, useRef, useState } from 'react'
-import { ScrollArea } from '../ui/scroll-area'
+import {useSpots} from '@/providers/SpotsProvider'
+import {TouriClientChatService} from '@/services/client/TouriClientChatService'
+import {Message} from '@/types/chat'
+import {Spot} from '@/types/spot'
+import React, {useEffect, useRef, useState} from 'react'
+import {ScrollArea} from '../ui/scroll-area'
 import ChatMessage from './chat-message'
 import PromptInput from './prompt-input'
-import { Part } from '@google/genai'
+import {fileToBase64} from "@/lib/base64";
 
 type ConversationProps = {
     messages: Message[],
     setMessages: React.Dispatch<React.SetStateAction<Message[]>>,
 }
 
-export default function Conversation({ messages, setMessages }: ConversationProps) {
-    const { setSpots } = useSpots()
+export default function Conversation({messages, setMessages}: ConversationProps) {
+    const {setSpots} = useSpots()
     const chatServiceRef = useRef<TouriClientChatService | null>(null)
     const [loading, setLoading] = useState(false)
 
@@ -35,11 +35,11 @@ export default function Conversation({ messages, setMessages }: ConversationProp
                             // append to existing assistant message
                             return [
                                 ...prev.slice(0, -1),
-                                { role: 'assistant', text: last.text + chunk },
+                                {role: 'assistant', text: last.text + chunk},
                             ];
                         } else {
                             // create new assistant message if none exists
-                            return [...prev, { role: 'assistant', text: chunk }];
+                            return [...prev, {role: 'assistant', text: chunk}];
                         }
                     });
                 },
@@ -52,7 +52,7 @@ export default function Conversation({ messages, setMessages }: ConversationProp
                     setLoading(true)
                     setMessages((prev) => {
                         const filtered = prev.filter(msg => !(msg.role === 'assistant' && msg.text === ''));
-                        return [...filtered, { role: 'assistant', text: '' }];
+                        return [...filtered, {role: 'assistant', text: ''}];
                     });
                 }
             }
@@ -61,43 +61,68 @@ export default function Conversation({ messages, setMessages }: ConversationProp
         chatServiceRef.current = service
     }, [setSpots, setMessages])
 
-    const handleSend = (parts: Part[]) => {
-        if (!parts || !chatServiceRef.current) return;
+    const handleSend = async (message: string, files: File[]) => {
+        if (!chatServiceRef.current) return;
 
-        // Extract text from parts
-        const textParts = parts.filter(part => part.text != null);
-        if (textParts.length === 0) return;
+        if (message.trim() === '') return;
 
-        const message = textParts.map(part => part.text).join(' ');
+        const filesPromises = files.map(async file => {
+            const base64Content = await fileToBase64(file);
+            return {
+                content: base64Content,
+                mimeType: file.type
+            };
+        });
+
+        const parsedFiles = await Promise.all(filesPromises) as Message["files"]
 
         // add user message
         setMessages(
-            (prev) => [...prev, { role: 'user', text: message }]
+            (prev) => [...prev, {
+                role: 'user',
+                text: message,
+                files: parsedFiles
+            }]
         );
 
         // For now, we don't handle files from Parts, but we could extend this
-        chatServiceRef.current.sendMessage(message);
+        chatServiceRef.current.sendMessage(message, files);
     };
 
     return (
-        <div className='conversation-container relative'>
-            <ScrollArea className='h-[calc(100vh-8rem)] w-full'>
-                {messages.length === 0
-                    ? (<>
-                        <div className='h-[calc(100vh-8rem)] max-w-sm mx-auto flex justify-center items-center'>
-                            <h1 className='text-3xl text-center'>
-                                Hi! I'm <span className='font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent'>Touri</span>, your travel assistant. How can I help you today?
-                            </h1>
-                        </div></>)
-                    : messages
-                        .filter(m => m.role === "user" || m.role === "assistant")
-                        .map((msg, index) => (
-                            <ChatMessage key={index} {...msg} isLoading={index === messages.length - 1 && loading} />
-                        ))}
-            </ScrollArea>
-            <div className='fixed bottom-0 left-0 right-0 h-32'>
-                <div className='max-w-screen-sm mx-auto p-4 z-10'>
-                    <PromptInput onSend={handleSend} loading={loading} />
+        <div className='h-screen flex flex-col'>
+            {/* Chat messages area - takes remaining space */}
+            <div className='flex-1 overflow-hidden'>
+                <ScrollArea className='h-full w-full'>
+                    <div className='max-w-screen-sm mx-auto px-4'>
+                        {messages.length === 0
+                            ? (<>
+                                <div className='h-screen flex justify-center items-center'>
+                                    <h1 className='text-3xl text-center'>
+                                        Hi! I'm <span
+                                        className='font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent'>Touri</span>,
+                                        your travel assistant. How can I help you today?
+                                    </h1>
+                                </div>
+                            </>)
+                            : (
+                                <div className='py-4 space-y-4'>
+                                    {messages
+                                        .filter(m => m.role === "user" || m.role === "assistant")
+                                        .map((msg, index) => (
+                                            <ChatMessage key={index} {...msg}
+                                                         isLoading={index === messages.length - 1 && loading}/>
+                                        ))}
+                                </div>
+                            )}
+                    </div>
+                </ScrollArea>
+            </div>
+
+            {/* Fixed prompt input at bottom */}
+            <div className='shrink-0 bg-background'>
+                <div className='max-w-screen-sm mx-auto p-4'>
+                    <PromptInput onSend={handleSend} loading={loading}/>
                 </div>
             </div>
         </div>

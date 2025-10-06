@@ -1,32 +1,11 @@
 import { Part } from "@google/genai"
 import { NextRequest, NextResponse } from "next/server";
-import z from "zod";
-import { TouriChatService } from "../../../../services/server/TouriChatService";
+import { TouriChatService } from "@/services/server/TouriChatService";
 import { CallableTool_2 } from "@/types/tool";
 import { GetUserLocationTool, ReverseGeocodingTool, SearchPlaceTools } from "@/tools/MapTools";
+import {GenerateRequestBodySchema, GenerateRequestHeaderSchema} from "@/app/api/ai/generate/schemas";
+import {createSSEChunk} from "@/app/api/ai/generate/utils";
 
-const FileSchema = z.object({
-    name: z.string(),
-    content: z.string(), // base64 encoded content
-    mimeType: z.string()
-})
-
-// Request Body Validation
-const GenerateRequestBodySchema = z.object({
-    text: z.string().min(1),
-    files: z.array(FileSchema).optional()
-})
-
-// Request Header Validation
-const GenerateRequestHeaderSchema = z.object({
-    geolat: z.string().optional(),
-    geolng: z.string().optional(),
-    sessionId: z.string().optional(),
-})
-
-function createSSEChunk(data: any) {
-    return `data: ${JSON.stringify(data)}\n\n`;
-}
 
 const TOOLS: CallableTool_2[] = [SearchPlaceTools,GetUserLocationTool,ReverseGeocodingTool]
 
@@ -67,10 +46,10 @@ export async function POST(request: NextRequest) {
                             spots
                         } as Part)));
                     },
-                    (memories) => {
+                    (_) => {
                         /** OnMemoryChange */
                     },
-                    (memory) => {
+                    (_) => {
                         /** OnMemoryChangePush */
                     },
                     (chunk) => {
@@ -101,9 +80,7 @@ export async function POST(request: NextRequest) {
                     }
                 )
 
-                await touriChatService.sendMessage([{
-                    text: body.data.text,
-                }])
+                await touriChatService.sendMessage(body.data.text, body.data.files || [])
 
             },
         })

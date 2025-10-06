@@ -1,8 +1,9 @@
-import { Content, FunctionCall, GenerateContentConfig, GenerateContentResponse, GoogleGenAI, Part } from "@google/genai";
-import { ITouriChatService } from "./ITouriChatService";
-import { Spot } from "@/types/spot";
-import { CallableTool_2, CallableToolRequestContext } from "@/types/tool";
-import { zodToFunctionDeclaration } from "@/lib/function";
+import {Content, FunctionCall, GenerateContentConfig, GenerateContentResponse, GoogleGenAI, Part} from "@google/genai";
+import {ITouriChatService} from "./ITouriChatService";
+import {Spot} from "@/types/spot";
+import {CallableTool_2, CallableToolRequestContext} from "@/types/tool";
+import {zodToFunctionDeclaration} from "@/lib/function";
+import {FileUpload} from "@/app/api/ai/generate/schemas";
 
 const SYSTEM_PROMPT = `
                 Your name is Touri, an AI assistant for a tourism app.
@@ -72,7 +73,7 @@ export class TouriChatService implements ITouriChatService {
     onThoughtStream: (thought: string) => void;
 
     constructor(
-        context: CallableToolRequestContext = { caller: "chat" },
+        context: CallableToolRequestContext = {caller: "chat"},
         tools: CallableTool_2[] = [],
         onSpotAddition: (spots: Spot[]) => void,
         onHistoryChange: (memory: Content[]) => void,
@@ -143,17 +144,25 @@ export class TouriChatService implements ITouriChatService {
         }
     }
 
-    async sendMessage(parts: Part[]): Promise<void> {
+    async sendMessage(message: string, files: FileUpload[]): Promise<void> {
         if (this.isGenerating) {
             return // Break if the chat is still generating
         }
 
-        this.pushHistory({
-            parts,
-            role: 'user'
-        });
-
         try {
+            this.pushHistory({
+                parts: [
+                    {text: message},
+                    ...files.map(f => ({
+                        inlineData: {
+                            data: f.content,
+                            mimeType: f.mimeType,
+                        }
+                    }))
+                ],
+                role: 'user'
+            });
+
             const response = await this.ai.models.generateContentStream({
                 model: 'gemini-2.5-flash',
                 contents: this.history,
@@ -170,6 +179,7 @@ export class TouriChatService implements ITouriChatService {
 
 
     }
+
     async handleMessage(response: AsyncGenerator<GenerateContentResponse>): Promise<void> {
         let hasStarted = false;
         let fullResponse = ''
@@ -215,7 +225,7 @@ export class TouriChatService implements ITouriChatService {
         // Add the complete response to history after the loop finishes
         if (fullResponse) {
             this.pushHistory({
-                parts: [{ text: fullResponse }],
+                parts: [{text: fullResponse}],
                 role: 'model'
             });
         }

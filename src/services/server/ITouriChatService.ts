@@ -1,6 +1,7 @@
-import { Spot } from "@/types/spot";
-import { CallableTool_2, CallableToolRequestContext } from "@/types/tool";
-import { Content, FunctionCall, GenerateContentResponse, GoogleGenAI, Part } from "@google/genai";
+import {Spot} from "@/types/spot";
+import {CallableTool_2, CallableToolRequestContext} from "@/types/tool";
+import {Content, FunctionCall, GenerateContentResponse, GoogleGenAI, Part} from "@google/genai";
+import {FileUpload} from "@/app/api/ai/generate/schemas";
 
 export interface ITouriChatService {
     /** Indicates if the AI is currently generating a response */
@@ -50,9 +51,11 @@ export interface ITouriChatService {
 
     /**
      * Sends a message to the AI and handles the response.
-     * @param parts The parts of the message to send
+     * @param message The user's message
+     * @param files Optional files to include with the message
+     * @returns A promise that resolves when the message has been sent and processed
      */
-    sendMessage(parts: Part[]): void
+    sendMessage(message: string, files: FileUpload[]): Promise<void>
 
     /**
      * Handles the incoming message stream from the AI.
