@@ -11,7 +11,7 @@ export default function Navbar() {
         <Link href={"/"} className="flex items-center gap-2 focus:outline-none">
           <div className="flex items-center gap-2">
             <Image
-              src={"/Touri.webp"}
+              src={"/icon/Touri.webp"}
             className="overflow-hidden"
               alt="Touri"
               width={40}
