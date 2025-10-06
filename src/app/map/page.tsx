@@ -7,24 +7,40 @@ import SpotMarkers from "./markers";
 
 const locations: Spot[] = [
   { 
+    id: "1",
+    rating: 4.5,
+    photos: [],
+    googleMapsUri: "https://maps.app.goo.gl/1234567890",
     location: { latitude: -2.976, longitude: 104.775 }, 
     types: ["restaurant"], 
     formattedAddress: "Palembang, Indonesia", 
     displayName: { text: "Palembang", languageCode: "en" }
    },
    {
+    id: "2",
+    rating: 4.5,
+    photos: [],
+    googleMapsUri: "https://maps.app.goo.gl/1234567890",
     location: { latitude: -2.983, longitude: 104.783 },
     types: ["cafe"],
     formattedAddress: "Cafe Example, Palembang, Indonesia",
     displayName: { text: "Cafe Example", languageCode: "en" }
    },
    {
+    id: "3",
+    rating: 4.5,
+    photos: [],
+    googleMapsUri: "https://maps.app.goo.gl/1234567890",
     location: { latitude: -2.970, longitude: 104.770 },
     types: ["museum"],
     formattedAddress: "Museum Example, Palembang, Indonesia",
     displayName: { text: "Museum Example", languageCode: "en" }
    },
    {
+    id: "4",
+    rating: 4.5,
+    photos: [],
+    googleMapsUri: "https://maps.app.goo.gl/1234567890",
     location: { latitude: -2.980, longitude: 104.760 },
     types: ["park"],
     formattedAddress: "Park Example, Palembang, Indonesia",
