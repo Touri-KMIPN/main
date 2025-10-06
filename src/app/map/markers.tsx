@@ -2,8 +2,8 @@ import { AdvancedMarker, useMap } from "@vis.gl/react-google-maps"
 import { useState, useRef, useCallback, useEffect } from "react"
 import { MarkerClusterer } from "@googlemaps/markerclusterer"
 import type { Marker } from "@googlemaps/markerclusterer"
-import { UtensilsCrossed } from "lucide-react"
-import { Spot } from "@/types/spot"
+import { Spot, PlaceType } from "@/types/spot"
+import { getPlaceIcon } from "@/lib/place-icons"
 
 // pins
 const PoiMarkers = (props: { pois: Spot[] }) => {
@@ -55,24 +55,30 @@ const PoiMarkers = (props: { pois: Spot[] }) => {
 
   return (
     <>
-      {props.pois.map((poi, idx) => (
-        <AdvancedMarker
-          key={idx}
-          position={{lat: poi.location.latitude, lng: poi.location.longitude,}}
-          ref={(marker) => setMarkerRef(marker, poi.displayName.text)}
-          onClick={handleClick}
-          clickable={true}
-        >
-          <div className="flex flex-col items-center gap-1">
-            <div className="bg-background p-2 rounded-full border">
-              <UtensilsCrossed className="size-4" />
+      {props.pois.map((poi, idx) => {
+        // Get the primary type (first type) for icon
+        const primaryType = poi.types[0] as PlaceType;
+        const Icon = getPlaceIcon(primaryType);
+        
+        return (
+          <AdvancedMarker
+            key={idx}
+            position={{lat: poi.location.latitude, lng: poi.location.longitude}}
+            ref={(marker) => setMarkerRef(marker, poi.displayName.text)}
+            onClick={handleClick}
+            clickable={true}
+          >
+            <div className="flex flex-col items-center gap-1">
+              <div className="p-2 rounded-full border bg-white text-black shadow-lg">
+                <Icon className="size-4" />
+              </div>
+              <p className="bg-background px-1 rounded-lg text-xs font-medium">
+                {poi.displayName.text.replace(/([A-Z])/g, " $1").trim()}
+              </p>
             </div>
-            <p className="bg-background px-1 rounded-lg">
-              {poi.displayName.text.replace(/([A-Z])/g, " $1").trim()}
-            </p>
-          </div>
-        </AdvancedMarker>
-      ))}
+          </AdvancedMarker>
+        );
+      })}
     </>
   );
 };
