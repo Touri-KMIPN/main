@@ -1,13 +1,11 @@
 "use client"
 import React, { useState, useEffect, useRef } from 'react';
-import { TouriChatService } from '@/services/TouriChatService';
-import { PlaceTool } from '@/tools/PlaceTool';
-import type { Tool } from '@/types/tool';
-import { GetCurrentTimeTool } from '@/tools/GetCurrentTimeTool';
+import { TouriChatService } from '@/services/client/TouriChatService_deprecated';
+import type { CallableTool } from '@/types/tool';
 import { MarkdownLLM } from './chat/markdown-renderer';
 import { Message } from '@/types/chat';
 
-const tools: Tool[] = [GetCurrentTimeTool];
+const tools: CallableTool[] = [];
 
 export const Chat: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -19,7 +17,7 @@ export const Chat: React.FC = () => {
     const service = new TouriChatService(
       () => {}, // onSpotAddition
       (memory) => {
-        // memory changed (full history)
+        // session changed (full history)
         console.log('Memory updated', memory);
       },
       (chunk) => {
@@ -60,7 +58,9 @@ export const Chat: React.FC = () => {
     // add user message
     setMessages((prev) => [...prev, { role: 'user', text }]);
     
-    serviceRef.current.sendMessage(text);
+    serviceRef.current.sendMessage([{
+      text,
+    }]);
     setInput('');
   };
 

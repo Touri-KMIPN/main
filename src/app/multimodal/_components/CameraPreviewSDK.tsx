@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Video, VideoOff } from "lucide-react";
-import { GeminiWebSocketSDK } from "@/services/GeminiLiveSDK";
+import { TouriLiveSDK } from "@/services/client/TouriLiveService";
 import { Base64 } from "js-base64";
 
 interface CameraPreviewSDKProps {
@@ -16,7 +16,7 @@ export default function CameraPreviewSDK({ onTranscription }: CameraPreviewSDKPr
   const [isStreaming, setIsStreaming] = useState(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [audioLevel, setAudioLevel] = useState(0);
-  const geminiRef = useRef<GeminiWebSocketSDK | null>(null);
+  const geminiRef = useRef<TouriLiveSDK | null>(null);
   const videoCanvasRef = useRef<HTMLCanvasElement>(null);
   const audioWorkletNodeRef = useRef<AudioWorkletNode | null>(null);
   const [isAudioSetup, setIsAudioSetup] = useState(false);
@@ -108,7 +108,7 @@ export default function CameraPreviewSDK({ onTranscription }: CameraPreviewSDKPr
     }
 
     setConnectionStatus("connecting");
-    geminiRef.current = new GeminiWebSocketSDK(
+    geminiRef.current = new TouriLiveSDK(
       (text) => {
         console.log("[CameraSDK] Received text:", text);
       },

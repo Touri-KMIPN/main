@@ -1,4 +1,4 @@
-import { AlignJustifyIcon, CompassIcon } from "lucide-react";
+import { AlignJustifyIcon } from "lucide-react";
 import { Button } from "../ui/button";
 import { ModeToggle } from "../theme-toggle";
 import Image from "next/image";

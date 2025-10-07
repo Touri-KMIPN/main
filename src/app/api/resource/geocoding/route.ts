@@ -3,7 +3,6 @@ import { NextRequest, NextResponse } from "next/server";
 import z from "zod";
 
 const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
-const GOOGLE_MAPS_API_ENDPOINT = "https://places.googleapis.com/v1";
 
 const ReverseGeocodeSchema = z.object({
     latitude: z.number().min(-90).max(90),

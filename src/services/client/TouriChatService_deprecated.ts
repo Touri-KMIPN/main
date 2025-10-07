@@ -7,10 +7,9 @@ import {
     GoogleGenAI,
     Part,
 } from "@google/genai";
-import type { Tool } from "@/types/tool";
+import type { CallableTool } from "@/types/tool";
 import { Spot } from "@/types/spot";
-import { SearchPlaceTools, GetUserLocationTool, ReverseGeocodingTool } from "@/tools/MapTools";
-import { SpotsProviderContext, useSpots } from "@/providers/SpotsProvider";
+import { SearchPlaceTools, GetUserLocationTool, ReverseGeocodingTool } from "@/tools/MapTools_deprecated";
 
 const MODEL = "gemini-2.5-flash";
 const SYSTEM_PROMPT = `
@@ -63,6 +62,10 @@ const SYSTEM_PROMPT = `
                 - "what's the best pizza place?" → use search_place with textQuery: "best pizza restaurant"
                 `
 
+/**
+ * !!!DEPRECATION WARNING!!!
+ * This service is deprecated please refer to TouriChatService (Server) and TouriClientChatService
+ */
 export class TouriChatService {
     /**
      * Utility to listen to spot addition
@@ -81,9 +84,8 @@ export class TouriChatService {
     onResponseEnd: () => void;
     onResponseStart: () => void;
 
-    tools: Map<string, Tool> = new Map();
+    tools: Map<string, CallableTool> = new Map();
     ai: GoogleGenAI;
-    chat: Chat;
 
     history: Content[] = [];
     isGenerating = false;
@@ -94,7 +96,7 @@ export class TouriChatService {
         onResponseStream: (chunk: string) => void,
         onResponseEnd: () => void,
         onResponseStart: () => void,
-        tools: Tool[] = [],
+        tools: CallableTool[] = [],
         history: Content[] = []
     ) {
         this.onSpotChange = onSpotChange;
@@ -111,12 +113,6 @@ export class TouriChatService {
             .concat([SearchPlaceTools, GetUserLocationTool, ReverseGeocodingTool]) // always include all map tools
             .filter((tool) => tool.declaration.name != null)
             .forEach((tool) => this.tools.set(tool.declaration.name!, tool));
-
-        this.chat = this.ai.chats.create({
-            model: MODEL,
-            history: this.history,
-            config: this.createConfig(),
-        });
 
         this.history = history
 
@@ -149,9 +145,6 @@ export class TouriChatService {
             systemInstruction: {
                 text: SYSTEM_PROMPT
             },
-            // thinkingConfig: {
-            //     thinkingBudget: -1
-            // }
         };
     }
 
@@ -253,13 +246,13 @@ export class TouriChatService {
                     },
                 });
 
-                
+
                 continue;
             }
 
             try {
                 const args = (call.args ?? {}) as FunctionCall["args"];
-                const result = await tool.execute(args);
+                const result = await tool.execute?.(args);
                 toolResponses.push({
                     functionResponse: {
                         id: call.id,
