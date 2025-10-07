@@ -7,6 +7,7 @@ import HowToUseSection from "@/components/_section/how-to-use-section";
 import { IntrovertSection } from "@/components/_section/introvert-section";
 import { PersonalizedSection } from "@/components/_section/personalized-section";
 import { PopularDestinationsSection } from "@/components/_section/popular-destinations-section";
+import FloatingMessageButton from "@/components/floating-message-button";
 import React from "react";
 
 export default function LandingPage() {
@@ -39,6 +40,9 @@ export default function LandingPage() {
       <CTASection />
 
       <Footer />
+
+      {/* Floating Message Button */}
+      <FloatingMessageButton />
     </>
   );
 }
