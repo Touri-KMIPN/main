@@ -36,6 +36,55 @@ export default function CameraPreviewSDK({
   const [connectionStatus, setConnectionStatus] = useState<
     "disconnected" | "connecting" | "connected"
   >("disconnected");
+  const [camFacing, setCamFacing] = useState<"user" | "environment">("user");
+
+   useEffect(() => {
+     // Jalankan hanya jika kamera sedang streaming
+     if (isStreaming && stream) {
+       // 1. Matikan stream yang sedang berjalan
+       stream.getTracks().forEach((track) => track.stop());
+
+       // 2. Minta stream baru dengan camFacing yang sudah diperbarui
+       // (Kita 'mencuri' logika dari fungsi toggleCamera-mu)
+       const getNewStream = async () => {
+         try {
+           const videoStream = await navigator.mediaDevices.getUserMedia({
+             video: {
+               facingMode: camFacing, // Pakai state camFacing yang baru
+             },
+             audio: false,
+           });
+
+           const audioStream = await navigator.mediaDevices.getUserMedia({
+             audio: {
+               sampleRate: 16000,
+               channelCount: 1,
+               echoCancellation: true,
+               autoGainControl: true,
+               noiseSuppression: true,
+             },
+           });
+
+           const combinedStream = new MediaStream([
+             ...videoStream.getTracks(),
+             ...audioStream.getTracks(),
+           ]);
+
+           if (videoRef.current) {
+             videoRef.current.srcObject = combinedStream;
+           }
+
+           // Update state stream agar konsisten
+           setStream(combinedStream);
+         } catch (err) {
+           console.error("[CameraSDK] Error flipping camera:", err);
+         }
+       };
+
+       getNewStream();
+     }
+     // Dependency array: Kode ini akan berjalan setiap kali 'camFacing' berubah
+   }, [camFacing]);
 
   const cleanupAudio = useCallback(() => {
     if (audioWorkletNodeRef.current) {
@@ -73,7 +122,10 @@ export default function CameraPreviewSDK({
     } else {
       try {
         const videoStream = await navigator.mediaDevices.getUserMedia({
-          video: true,
+          // video: true,
+          video: {
+            facingMode: camFacing,
+          },
           audio: false,
         });
 
@@ -336,6 +388,9 @@ export default function CameraPreviewSDK({
             </Button>
 
             <Button
+              onClick={() => {
+                setCamFacing(camFacing === "user" ? "environment" : "user");
+              }}
               className="h-12 w-12 cursor-pointer rounded-full bg-secondary text-secondary-foreground hover:bg-secondary/70"
               title="Rotate Camera"
             >
@@ -359,7 +414,7 @@ export default function CameraPreviewSDK({
           )}
         </div>
       </div>
-      
+
       {/* <canvas ref={videoCanvasRef} className="hidden" /> */}
     </div>
   );
