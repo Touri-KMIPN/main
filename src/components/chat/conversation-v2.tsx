@@ -1,70 +1,81 @@
-import { useSpots } from "@/providers/SpotsProvider";
-import { TouriClientChatService } from "@/services/client/TouriClientChatService";
-import { Message } from "@/types/chat";
-import { Spot } from "@/types/spot";
-import React, { useEffect, useRef, useState } from "react";
-import { ScrollArea } from "../ui/scroll-area";
-import ChatMessage from "./chat-message";
-import PromptInput from "./prompt-input";
-import { fileToBase64 } from "@/lib/base64";
+import {useSpots} from '@/providers/SpotsProvider'
+import {TouriClientChatService} from '@/services/client/TouriClientChatService'
+import {Message} from '@/types/chat'
+import {Spot} from '@/types/spot'
+import React, {useEffect, useRef, useState} from 'react'
+import {ScrollArea} from '../ui/scroll-area'
+import ChatMessage from './chat-message'
+import PromptInput from './prompt-input'
+import {fileToBase64} from "@/lib/base64";
+import {useRouter, useSearchParams} from "next/navigation";
+import {useQueryClient} from "@tanstack/react-query";
 
 type ConversationProps = {
-  messages: Message[];
-  setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
-};
+    chatSessionId: string | null,
+    messages: Message[],
+    setMessages: React.Dispatch<React.SetStateAction<Message[]>>,
+}
 
-export default function Conversation({
-  messages,
-  setMessages,
-}: ConversationProps) {
-  const { setSpots } = useSpots();
-  const chatServiceRef = useRef<TouriClientChatService | null>(null);
-  const [loading, setLoading] = useState(false);
+export default function Conversation({messages, setMessages, chatSessionId}: ConversationProps) {
+    const {setSpots} = useSpots()
+    const chatServiceRef = useRef<TouriClientChatService | null>(null)
+    const [loading, setLoading] = useState(false)
+    const [sessionId, setSessionId] = useState<string | null>(chatSessionId)
 
-  useEffect(() => {
-    const service = new TouriClientChatService(
-      null, // sessionId
-      {
-        onSpotsAddition: (spots: Spot[]) => {
-          /* onSpotsAddition */
-          console.log("New spots added:", spots);
-          setSpots((prev) => prev.concat(spots));
-        },
-        onResponseStream: (chunk) => {
-          // streaming response chunk
-          setMessages((prev) => {
-            const last = prev[prev.length - 1];
-            if (last && last.role === "assistant") {
-              // append to existing assistant message
-              return [
-                ...prev.slice(0, -1),
-                { role: "assistant", text: last.text + chunk },
-              ];
-            } else {
-              // create new assistant message if none exists
-              return [...prev, { role: "assistant", text: chunk }];
+    const router = useRouter()
+
+    const queryClient = useQueryClient()
+
+    useEffect(() => {
+        chatServiceRef.current = new TouriClientChatService(
+            sessionId,
+            {
+                onSpotsAddition: (spots: Spot[]) => {
+                    /* onSpotsAddition */
+                    console.log("New spots added:", spots)
+                    setSpots(prev => prev.concat(spots))
+                },
+                onResponseStream: (chunk) => {
+                    // streaming response chunk
+                    setMessages((prev) => {
+                        const last = prev[prev.length - 1];
+                        if (last && last.role === 'assistant') {
+                            // append to existing assistant message
+                            return [
+                                ...prev.slice(0, -1),
+                                {role: 'assistant', text: last.text + chunk},
+                            ];
+                        } else {
+                            // create new assistant message if none exists
+                            return [...prev, {role: 'assistant', text: chunk}];
+                        }
+                    });
+                },
+                onResponseEnd: () => {
+                    /* response ended */
+                    setLoading(false)
+                },
+                onResponseStart: () => {
+                    /* response started */
+                    setLoading(true)
+                    setMessages((prev) => {
+                        const filtered = prev.filter(msg => !(msg.role === 'assistant' && msg.text === ''));
+                        return [...filtered, {role: 'assistant', text: ''}];
+                    });
+                },
+                onSessionCreation: (sessionId) => {
+                    // If a new session is created, we can navigate to it
+                    if (sessionId) {
+                        router.push(`/chat?session=${sessionId}`);
+                    }
+
+                    queryClient.invalidateQueries({
+                        queryKey: ["sessions"]
+                    })
+                }
             }
-          });
-        },
-        onResponseEnd: () => {
-          /* response ended */
-          setLoading(false);
-        },
-        onResponseStart: () => {
-          /* response started */
-          setLoading(true);
-          setMessages((prev) => {
-            const filtered = prev.filter(
-              (msg) => !(msg.role === "assistant" && msg.text === "")
-            );
-            return [...filtered, { role: "assistant", text: "" }];
-          });
-        },
-      }
-    );
-
-    chatServiceRef.current = service;
-  }, [setSpots, setMessages]);
+        )
+    }, [setSpots, setMessages])
 
   const handleSend = async (message: string, files: File[]) => {
     if (!chatServiceRef.current) return;

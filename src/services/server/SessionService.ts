@@ -1,5 +1,5 @@
-import {ContentDocument, contentsCollection} from "@/database/collections/contents";
-import {SessionDocument, sessionsCollection} from "@/database/collections/sessions";
+import { ContentDocument, contentsCollection } from "@/database/collections/contents";
+import { SessionDocument, sessionsCollection } from "@/database/collections/sessions";
 
 interface ISessionService {
     getSessions(): Promise<SessionDocument[]>;
@@ -21,11 +21,11 @@ export class SessionService implements ISessionService {
     }
 
     async getUserSession(userId: string): Promise<SessionDocument[]> {
-        return await sessionsCollection.find({userId}).toArray();
+        return await sessionsCollection.find({ userId }).toArray();
     }
 
     async getSessionById(sessionId: string): Promise<SessionDocument | null> {
-        return sessionsCollection.findOne({id: sessionId});
+        return sessionsCollection.findOne({ id: sessionId });
     }
 
     async createSession(summary: string, userId: string): Promise<SessionDocument> {
@@ -42,10 +42,10 @@ export class SessionService implements ISessionService {
     }
 
     async getSessionMessages(sessionId: string): Promise<ContentDocument[]> {
-        return contentsCollection.find({sessionId}).toArray();
+        return contentsCollection.find({ sessionId }).sort({ createdAt: 1 }).toArray();
     }
 
     async appendContentToSession(sessionId: string, content: ContentDocument): Promise<void> {
-        await contentsCollection.insertOne({...content, sessionId});
+        await contentsCollection.insertOne({ ...content, sessionId });
     }
 }

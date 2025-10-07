@@ -1,10 +1,11 @@
-import { Spot } from "@/types/spot"; // Make sure this path is correct
+import {Spot} from "@/types/spot"; // Make sure this path is correct
 
 // Define the structure of the data chunks from your API
 type StreamChunk =
     | { text: string }
     | { spots: Spot[] }
-    | { finished: boolean };
+    | { finished: boolean }
+    | { sessionId: string }
 
 // A helper type for the base64 file format
 interface Base64File {
@@ -33,6 +34,7 @@ export class TouriClientChatService implements ITouriClientChatService {
     onResponseEnd: () => void;
     onResponseStream: (chunk: string) => void;
     onSpotsAddition: (spots: Spot[]) => void;
+    onSessionCreation: (sessionId: string) => void
 
     constructor(
         sessionId: string | null = null,
@@ -41,13 +43,20 @@ export class TouriClientChatService implements ITouriClientChatService {
             onResponseEnd?: () => void;
             onResponseStream?: (chunk: string) => void;
             onSpotsAddition?: (spots: Spot[]) => void;
+            onSessionCreation?: (sessionId: string) => void;
         } = {}
     ) {
         this.sessionId = sessionId;
-        this.onResponseStart = callbacks.onResponseStart ?? (() => { });
-        this.onResponseEnd = callbacks.onResponseEnd ?? (() => { });
-        this.onResponseStream = callbacks.onResponseStream ?? (() => { });
-        this.onSpotsAddition = callbacks.onSpotsAddition ?? (() => { });
+        this.onResponseStart = callbacks.onResponseStart ?? (() => {
+        });
+        this.onResponseEnd = callbacks.onResponseEnd ?? (() => {
+        });
+        this.onResponseStream = callbacks.onResponseStream ?? (() => {
+        });
+        this.onSpotsAddition = callbacks.onSpotsAddition ?? (() => {
+        });
+        this.onSessionCreation = callbacks.onSessionCreation ?? (() => {
+        });
     }
 
     /**
@@ -83,7 +92,7 @@ export class TouriClientChatService implements ITouriClientChatService {
                     });
                 },
                 () => resolve(null), // On error, return null
-                { timeout: 5000 } // Optional: set a timeout for geolocation
+                {timeout: 5000} // Optional: set a timeout for geolocation
             );
         });
     }
@@ -111,7 +120,7 @@ export class TouriClientChatService implements ITouriClientChatService {
                     'Content-Type': 'application/json',
                     // Add other headers like geolocation if needed
                     'sessionId': this.sessionId || '',
-                    ... (geolocation ? { 'geolat': geolocation.lat, 'geolng': geolocation.lng } : {})
+                    ...(geolocation ? {'geolat': geolocation.lat, 'geolng': geolocation.lng} : {})
 
                 },
                 body: JSON.stringify({
@@ -129,10 +138,10 @@ export class TouriClientChatService implements ITouriClientChatService {
             let buffer = '';
 
             while (true) {
-                const { done, value } = await reader.read();
+                const {done, value} = await reader.read();
                 if (done) break;
 
-                buffer += decoder.decode(value, { stream: true });
+                buffer += decoder.decode(value, {stream: true});
                 const messages = buffer.split('\n\n');
                 buffer = messages.pop() || '';
 
@@ -147,6 +156,11 @@ export class TouriClientChatService implements ITouriClientChatService {
                         }
                         if ('spots' in data) {
                             this.onSpotsAddition(data.spots);
+                        }
+                        if ('sessionId' in data) {
+                            this.sessionId = data.sessionId;
+                            console.log("New session ID received:", data.sessionId);
+                            this.onSessionCreation(data.sessionId)
                         }
                         if ('finished' in data && data.finished) {
                             // The stream is done, the finally block will handle the rest
