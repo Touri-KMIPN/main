@@ -1,14 +1,15 @@
 "use client";
-import { APIProvider, Map } from "@vis.gl/react-google-maps";
-import SpotMarkers from "./_components/markers";
+import { APIProvider, ColorScheme, Map } from "@vis.gl/react-google-maps";
+import SpotMarkers from "./markers";
 import { useGeolocation } from "@/hooks/use-geolocation";
 import UserLocationMarker from "@/app/map/_components/user-location-marker";
 import { useSpots } from "@/providers/SpotsProvider";
+import { useTheme } from "next-themes";
 
 export default function MapView() {
   const apiKey = process.env.NEXT_PUBLIC_MAPS_API_KEY;
   const { spots } = useSpots();
-  const mapId = "b44ced02340309e34f92c893";
+  const mapId = process.env.NEXT_PUBLIC_MAPS_ID;
   if (!apiKey) {
     throw new Error("Missing Api key");
   }
@@ -19,6 +20,8 @@ export default function MapView() {
     latitude && longitude
       ? { lat: latitude, lng: longitude }
       : { lat: -2.976, lng: 104.775 }; // Palembang, Indonesia as fallback
+
+  const { theme, resolvedTheme } = useTheme();
 
   if (loading) {
     return;
@@ -36,6 +39,13 @@ export default function MapView() {
             streetViewControl={true}
             cameraControl={false}
             fullscreenControl={true}
+            colorScheme={
+              theme === "system"
+                ? ColorScheme.FOLLOW_SYSTEM
+                : resolvedTheme === "dark"
+                ? ColorScheme.DARK
+                : ColorScheme.LIGHT
+            }
           >
             <SpotMarkers pois={spots} />
             {/* show user location */}
