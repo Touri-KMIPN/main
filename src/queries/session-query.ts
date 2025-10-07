@@ -4,10 +4,9 @@ import { useQuery } from "@tanstack/react-query"
 
 export const useSessionMessagesQuery = (
     sessionId?: string,
-    initialLoad?: boolean,
 ) => {
     return useQuery({
-        queryKey: ['session', sessionId, "messages"],
+        queryKey: ['messages', sessionId],
         queryFn: async () => {
             const response = await fetch(`/api/ai/session/${sessionId}/messages`);
             if (!response.ok) {
@@ -18,7 +17,7 @@ export const useSessionMessagesQuery = (
 
             return parsedResponse.messages as ContentDocument[];
         },
-        enabled: !!sessionId && !initialLoad, // Only run if sessionId is provided and it's not the initial load
+        enabled: !!sessionId, // Only run if sessionId is provided
     });
 }
 
@@ -36,3 +35,4 @@ export const useSessionsQuery = () => {
         initialData: [],
     });
 }
+

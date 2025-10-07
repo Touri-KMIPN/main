@@ -77,7 +77,7 @@ export function Sidebar({ isOpen, onToggle, sessions }: SidebarProps) {
                         {/* History Item */}
                         <div className="flex flex-col gap-2 overflow-hidden">
                             {sessions.map((item, index) => (
-                                <Link key={index} href={`/chat?sessionId=${item.id}`}>
+                                <Link key={index} href={`/chat/${item.id}`}>
                                     <Button
                                         variant="ghost"
                                         className={`w-full justify-start gap-3 ${!isOpen && "justify-center px-2"

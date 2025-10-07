@@ -8,6 +8,7 @@ import ChatMessage from './chat-message'
 import PromptInput from './prompt-input'
 import {fileToBase64} from "@/lib/base64";
 import {useRouter, useSearchParams} from "next/navigation";
+import {useQueryClient} from "@tanstack/react-query";
 
 type ConversationProps = {
     chatSessionId: string | null,
@@ -23,7 +24,7 @@ export default function Conversation({messages, setMessages, chatSessionId}: Con
 
     const router = useRouter()
 
-    const searchParams = useSearchParams();
+    const queryClient = useQueryClient()
 
     useEffect(() => {
         chatServiceRef.current = new TouriClientChatService(
@@ -67,6 +68,10 @@ export default function Conversation({messages, setMessages, chatSessionId}: Con
                     if (sessionId) {
                         router.push(`/chat?session=${sessionId}`);
                     }
+
+                    queryClient.invalidateQueries({
+                        queryKey: ["sessions"]
+                    })
                 }
             }
         )
