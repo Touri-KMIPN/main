@@ -47,7 +47,7 @@ export default function SpotCard({ spot }: { spot?: Spot }) {
             )}
           </div>
           <div className="min-w-0 p-3">
-            <div className="font-medium leading-tight text-pretty">
+            <div className="font-bold text-primary leading-tight text-pretty">
               {spot.displayName.text}
             </div>
             {typeof spot.rating === "number" && (

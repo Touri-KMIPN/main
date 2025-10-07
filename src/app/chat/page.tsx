@@ -5,22 +5,18 @@ import { useSearchParams } from "next/navigation";
 import React, { useMemo } from "react";
 
 export default function Page() {
-    const [message, setMessage] = React.useState<Message[]>([]);
+  const [message, setMessage] = React.useState<Message[]>([]);
 
-    const searchParams = useSearchParams()
+  const searchParams = useSearchParams()
 
-    const sessionId = useMemo(() => {
-        if (searchParams) {
-            return searchParams.get("session");
-        }
-        return null;
-    }, [searchParams])
+  const sessionId = useMemo(() => {
+    if (searchParams) {
+      return searchParams.get("session");
+    }
+    return null;
+  }, [searchParams])
 
-    return (
-        <Conversation
-            messages={message}
-            setMessages={setMessage}
-            chatSessionId={sessionId}
-        />
-    );
+  return (
+    <Conversation chatSessionId={sessionId} messages={message} setMessages={setMessage} />
+  );
 }
