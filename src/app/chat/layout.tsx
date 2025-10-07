@@ -20,7 +20,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <SpotsProvider>
                 <AuthProvider>
                     <AuthSplashProvider>
-                        <div className="flex h-screen w-full overflow-hidden bg-background">
+                        <div className="flex h-dvh w-full overflow-hidden bg-background">
                             <Sidebar
                                 sessions={sessions}
                                 isOpen={sidebarOpen}
@@ -54,7 +54,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                             onClick={() => setMapOpen(!mapOpen)}
                                             size="icon"
                                             variant="outline"
-                                            className="absolute top-5 left-5 z-50 h-12 w-12 rounded-full shadow-lg hover:shadow-xl transition-all"
+                                            className="absolute top-5 left-5 z-50 cursor-pointer h-12 w-12 rounded-full shadow-lg hover:shadow-xl transition-all"
                                         >
                                             <XIcon className="h-5 w-5" />
                                         </Button>
@@ -67,7 +67,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                         onClick={() => setMapOpen(!mapOpen)}
                                         size="icon"
                                         variant="outline"
-                                        className="fixed top-5 right-5 z-10 h-12 w-12 rounded-full shadow-lg hover:shadow-xl transition-all"
+                                        className="fixed top-5 right-5 z-10 h-12 w-12 rounded-full cursor-pointer shadow-lg hover:shadow-xl transition-all"
                                     >
                                         <MapIcon className="h-5 w-5" />
                                     </Button>

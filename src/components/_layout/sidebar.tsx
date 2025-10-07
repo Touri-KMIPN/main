@@ -46,7 +46,7 @@ export function Sidebar({ isOpen, onToggle, sessions }: SidebarProps) {
           variant="ghost"
           size="icon"
           onClick={onToggle}
-          className="h-9 w-9 text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground"
+          className="h-9 w-9 cursor-pointer text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground"
         >
           {isOpen ? (
             <XIcon className="h-5 w-5" />
@@ -61,7 +61,7 @@ export function Sidebar({ isOpen, onToggle, sessions }: SidebarProps) {
         <Link href={"/chat?new=true"}>
           <Button
             variant={isOpen ? "default" : "ghost"}
-            className={cn("w-full gap-3 ",
+            className={cn("w-full gap-3 cursor-pointer ",
               isOpen && "justify-center px-2")
             }
           >

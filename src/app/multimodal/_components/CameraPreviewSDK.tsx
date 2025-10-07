@@ -2,15 +2,23 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Video, VideoOff } from "lucide-react";
+import {
+  RefreshCw,
+  RefreshCwIcon,
+  VideoIcon,
+  VideoOffIcon,
+} from "lucide-react";
 import { TouriLiveSDK } from "@/services/client/TouriLiveService";
 import { Base64 } from "js-base64";
+import { cn } from "@/lib/utils";
 
 interface CameraPreviewSDKProps {
   onTranscription: (text: string) => void;
 }
 
-export default function CameraPreviewSDK({ onTranscription }: CameraPreviewSDKProps) {
+export default function CameraPreviewSDK({
+  onTranscription,
+}: CameraPreviewSDKProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const [isStreaming, setIsStreaming] = useState(false);
@@ -25,7 +33,58 @@ export default function CameraPreviewSDK({ onTranscription }: CameraPreviewSDKPr
   const imageIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const [isModelSpeaking, setIsModelSpeaking] = useState(false);
   const [outputAudioLevel, setOutputAudioLevel] = useState(0);
-  const [connectionStatus, setConnectionStatus] = useState<"disconnected" | "connecting" | "connected">("disconnected");
+  const [connectionStatus, setConnectionStatus] = useState<
+    "disconnected" | "connecting" | "connected"
+  >("disconnected");
+  const [camFacing, setCamFacing] = useState<"user" | "environment">("user");
+
+   useEffect(() => {
+     // Jalankan hanya jika kamera sedang streaming
+     if (isStreaming && stream) {
+       // 1. Matikan stream yang sedang berjalan
+       stream.getTracks().forEach((track) => track.stop());
+
+       // 2. Minta stream baru dengan camFacing yang sudah diperbarui
+       // (Kita 'mencuri' logika dari fungsi toggleCamera-mu)
+       const getNewStream = async () => {
+         try {
+           const videoStream = await navigator.mediaDevices.getUserMedia({
+             video: {
+               facingMode: camFacing, // Pakai state camFacing yang baru
+             },
+             audio: false,
+           });
+
+           const audioStream = await navigator.mediaDevices.getUserMedia({
+             audio: {
+               sampleRate: 16000,
+               channelCount: 1,
+               echoCancellation: true,
+               autoGainControl: true,
+               noiseSuppression: true,
+             },
+           });
+
+           const combinedStream = new MediaStream([
+             ...videoStream.getTracks(),
+             ...audioStream.getTracks(),
+           ]);
+
+           if (videoRef.current) {
+             videoRef.current.srcObject = combinedStream;
+           }
+
+           // Update state stream agar konsisten
+           setStream(combinedStream);
+         } catch (err) {
+           console.error("[CameraSDK] Error flipping camera:", err);
+         }
+       };
+
+       getNewStream();
+     }
+     // Dependency array: Kode ini akan berjalan setiap kali 'camFacing' berubah
+   }, [camFacing]);
 
   const cleanupAudio = useCallback(() => {
     if (audioWorkletNodeRef.current) {
@@ -63,7 +122,10 @@ export default function CameraPreviewSDK({ onTranscription }: CameraPreviewSDKPr
     } else {
       try {
         const videoStream = await navigator.mediaDevices.getUserMedia({
-          video: true,
+          // video: true,
+          video: {
+            facingMode: camFacing,
+          },
           audio: false,
         });
 
@@ -182,17 +244,21 @@ export default function CameraPreviewSDK({ onTranscription }: CameraPreviewSDKPr
           return;
         }
 
-        audioWorkletNodeRef.current = new AudioWorkletNode(ctx, "audio-processor", {
-          numberOfInputs: 1,
-          numberOfOutputs: 1,
-          processorOptions: {
-            sampleRate: 16000,
-            bufferSize: 4096,
-          },
-          channelCount: 1,
-          channelCountMode: "explicit",
-          channelInterpretation: "speakers",
-        });
+        audioWorkletNodeRef.current = new AudioWorkletNode(
+          ctx,
+          "audio-processor",
+          {
+            numberOfInputs: 1,
+            numberOfOutputs: 1,
+            processorOptions: {
+              sampleRate: 16000,
+              bufferSize: 4096,
+            },
+            channelCount: 1,
+            channelCountMode: "explicit",
+            channelInterpretation: "speakers",
+          }
+        );
 
         const source = ctx.createMediaStreamSource(stream);
         audioWorkletNodeRef.current.port.onmessage = (event) => {
@@ -240,7 +306,8 @@ export default function CameraPreviewSDK({ onTranscription }: CameraPreviewSDKPr
   }, [isStreaming, stream, isWebSocketReady, isModelSpeaking]);
 
   const captureAndSendImage = () => {
-    if (!videoRef.current || !videoCanvasRef.current || !geminiRef.current) return;
+    if (!videoRef.current || !videoCanvasRef.current || !geminiRef.current)
+      return;
 
     const canvas = videoCanvasRef.current;
     const context = canvas.getContext("2d");
@@ -257,8 +324,8 @@ export default function CameraPreviewSDK({ onTranscription }: CameraPreviewSDKPr
   };
 
   return (
-    <div className="space-y-4">
-      <div className="relative overflow-hidden bg-muted rounded-lg h-[80dvh] w-[400px]">
+    <div className="">
+      <div className="relative overflow-hidden bg-muted md:rounded-lg h-dvh w-dvw">
         <video
           ref={videoRef}
           autoPlay
@@ -271,32 +338,84 @@ export default function CameraPreviewSDK({ onTranscription }: CameraPreviewSDKPr
             <div className="text-center space-y-2">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto" />
               <p className="text-white font-medium">
-                {connectionStatus === "connecting" ? "Connecting to Gemini..." : "Disconnected"}
+                {connectionStatus === "connecting"
+                  ? "Connecting to Gemini..."
+                  : "Disconnected"}
               </p>
-              <p className="text-white/70 text-sm">Please wait while we establish a secure connection</p>
+              <p className="text-white/70 text-sm">
+                Please wait while we establish a secure connection
+              </p>
             </div>
           </div>
         )}
 
-        <Button
+        {/* <Button
           onClick={toggleCamera}
           size="icon"
           className={`absolute left-1/2 bottom-4 -translate-x-1/2 rounded-full w-12 h-12 backdrop-blur-sm transition-colors
-            ${isStreaming ? "bg-red-500/50 hover:bg-red-500/70 text-white" : "bg-green-500/50 hover:bg-green-500/70 text-white"}
+            ${
+              isStreaming
+                ? "bg-red-500/50 hover:bg-red-500/70 text-white"
+                : "bg-green-500/50 hover:bg-green-500/70 text-white"
+            }
           `}
         >
-          {isStreaming ? <VideoOff className="h-6 w-6" /> : <Video className="h-6 w-6" />}
-        </Button>
-      </div>
-      {isStreaming && (
-        <div className="w-[400px] h-2 rounded-full bg-green-100">
-          <div
-            className="h-full rounded-full transition-all bg-green-500"
-            style={{ width: `${isModelSpeaking ? outputAudioLevel : audioLevel}%`, transition: "width 100ms ease-out" }}
-          />
+          {isStreaming ? (
+            <VideoOffIcon className="h-6 w-6" />
+          ) : (
+            <VideoIcon className="h-6 w-6" />
+          )}
+        </Button> */}
+
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-center pb-4">
+          <div className="pointer-events-auto flex items-center gap-3 rounded-full border border-border justify-center bg-background/80 px-2.5 py-2 shadow-md backdrop-blur-lg">
+            {/* Start Video Call */}
+            <Button
+              onClick={toggleCamera}
+              className={cn(
+                "cursor-pointer h-12 w-12 rounded-full",
+                isStreaming
+                  ? "bg-red-500 hover:bg-red-400"
+                  : "bg-primary text-primary-foreground hover:bg-primary/70"
+              )}
+              title="Start Video Call"
+            >
+              {isStreaming ? (
+                <VideoOffIcon className="h-5 w-5" aria-hidden />
+              ) : (
+                <VideoIcon className="h-5 w-5" aria-hidden />
+              )}
+            </Button>
+
+            <Button
+              onClick={() => {
+                setCamFacing(camFacing === "user" ? "environment" : "user");
+              }}
+              className="h-12 w-12 cursor-pointer rounded-full bg-secondary text-secondary-foreground hover:bg-secondary/70"
+              title="Rotate Camera"
+            >
+              <RefreshCwIcon className="h-5 w-5" aria-hidden />
+            </Button>
+          </div>
         </div>
-      )}
-      <canvas ref={videoCanvasRef} className="hidden" />
+      </div>
+
+      {/* Audio Indicator */}
+      <div className="fixed inset-x-0 top-0 w-full pt-4">
+        <div className="bg-green-200 h-2 w-[90dvw] rounded-full mx-auto">
+          {isStreaming && (
+            <div
+              className="h-full rounded-full transition-all bg-green-500"
+              style={{
+                width: `${isModelSpeaking ? outputAudioLevel : audioLevel}%`,
+                transition: "width 100ms ease-out",
+              }}
+            />
+          )}
+        </div>
+      </div>
+
+      {/* <canvas ref={videoCanvasRef} className="hidden" /> */}
     </div>
   );
 }

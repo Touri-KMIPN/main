@@ -35,18 +35,20 @@ export default function HeroSection() {
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
               <Link href={"/chat"}>
-                <Button size="lg" className="text-base px-8 h-12 rounded-full">
+                <Button size="lg" className="text-base w-full h-12 rounded-full">
                   <MapIcon />
                   Start Your Journey
                 </Button>
               </Link>
-              <Button
-                size="lg"
-                variant="outline"
-                className="text-base px-8 h-12 rounded-full bg-transparent"
-              >
-                Learn More
-              </Button>
+              <Link href={"#how-to-use"}>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="text-base px-8 h-12 w-full rounded-full bg-transparent"
+                >
+                  Learn More
+                </Button>
+              </Link>
             </div>
 
             <div className="flex items-center gap-6 justify-center lg:justify-start text-sm text-muted-foreground">
