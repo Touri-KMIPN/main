@@ -5,7 +5,7 @@ import { CallableTool_2 } from "@/types/tool";
 import { GetUserLocationTool, ReverseGeocodingTool, SearchPlaceTools } from "@/tools/MapTools";
 import { GenerateRequestBodySchema, GenerateRequestHeaderSchema } from "@/app/api/ai/generate/schemas";
 import { createSSEChunk } from "@/app/api/ai/generate/utils";
-import { $mongo, $mongoClient} from "@/lib/db";
+import { $mongoClient} from "@/lib/db";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 
 const TOOLS: CallableTool_2[] = [SearchPlaceTools, GetUserLocationTool, ReverseGeocodingTool]
@@ -90,15 +90,13 @@ export async function POST(request: NextRequest) {
                             sessionId: session.id
                         } as Part)));
                     },
-                    onHistoryChange(memory) {
+                    onHistoryChange(_) {
                         /** OnHistoryChange */
                     },
-                    onHistoryPush(memory) {
+                    onHistoryPush(_) {
                         /** OnHistoryPush */
                     },
                 })
-
-                await touriChatService.startChat();
 
                 await touriChatService.sendMessage(body.data.text, body.data.files || [])
             },

@@ -2,7 +2,7 @@ import {useSpots} from '@/providers/SpotsProvider'
 import {TouriChatService} from '@/services/client/TouriChatService_deprecated'
 import {Message} from '@/types/chat'
 import {CallableTool} from '@/types/tool'
-import React, {useEffect, useRef, useState} from 'react'
+import React, {useEffect, useRef} from 'react'
 import {ScrollArea} from '../ui/scroll-area'
 import ChatMessage from './chat-message'
 import PromptInput from './prompt-input'
@@ -19,7 +19,7 @@ type ConversationProps = {
  * This component is still using old sdk for communication please use `Conversation` from `conversation-v2.tsx` instead
  */
 export default function Conversation({messages, setMessages, tools}: ConversationProps) {
-    const {spots, setSpots} = useSpots()
+    const {setSpots} = useSpots()
     const chatServiceRef = useRef<TouriChatService | null>(null)
 
 
@@ -30,9 +30,8 @@ export default function Conversation({messages, setMessages, tools}: Conversatio
                 console.log("New spots added:", spots)
                 setSpots(prev => prev.concat(spots))
             },
-            (memory) => {
-                /* memory changed (full history) */
-                // TODO: Save memory if needed
+            (_) => {
+                /* session changed (full history) */
             },
             (chunk) => {
                 // streaming response chunk
@@ -103,7 +102,7 @@ export default function Conversation({messages, setMessages, tools}: Conversatio
             </ScrollArea>
             <div className='fixed bottom-0 left-0 right-0 h-32'>
                 <div className='max-w-screen-sm mx-auto p-4 z-10'>
-                    <PromptInput onSend={handleSend} loading={false}/>
+                    <PromptInput onSend={() => {}} loading={false}/>
                 </div>
             </div>
         </div>

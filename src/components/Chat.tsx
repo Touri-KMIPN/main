@@ -17,7 +17,7 @@ export const Chat: React.FC = () => {
     const service = new TouriChatService(
       () => {}, // onSpotAddition
       (memory) => {
-        // memory changed (full history)
+        // session changed (full history)
         console.log('Memory updated', memory);
       },
       (chunk) => {

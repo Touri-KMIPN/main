@@ -1,7 +1,7 @@
-import { ContentDocument, contentsCollection } from "@/database/collections/contents";
-import { SessionDocument, sessionsCollection } from "@/database/collections/sessions";
+import {ContentDocument, contentsCollection} from "@/database/collections/contents";
+import {SessionDocument, sessionsCollection} from "@/database/collections/sessions";
 
-interface IMemoryService {
+interface ISessionService {
     getSessions(): Promise<SessionDocument[]>;
 
     createSession(summary: string, userId: string): Promise<SessionDocument>;
@@ -10,16 +10,22 @@ interface IMemoryService {
 
     getSessionMessages(sessionId: string): Promise<ContentDocument[]>;
 
+    getUserSession(userId: string): Promise<SessionDocument[]>;
+
     appendContentToSession(sessionId: string, content: ContentDocument): Promise<void>;
 }
 
-export class MemoryService implements IMemoryService {
+export class SessionService implements ISessionService {
     async getSessions(): Promise<SessionDocument[]> {
         return sessionsCollection.find().toArray()
     }
 
+    async getUserSession(userId: string): Promise<SessionDocument[]> {
+        return await sessionsCollection.find({userId}).toArray();
+    }
+
     async getSessionById(sessionId: string): Promise<SessionDocument | null> {
-        return sessionsCollection.findOne({ id: sessionId });
+        return sessionsCollection.findOne({id: sessionId});
     }
 
     async createSession(summary: string, userId: string): Promise<SessionDocument> {
@@ -36,10 +42,10 @@ export class MemoryService implements IMemoryService {
     }
 
     async getSessionMessages(sessionId: string): Promise<ContentDocument[]> {
-        return contentsCollection.find({ sessionId }).toArray();
+        return contentsCollection.find({sessionId}).toArray();
     }
 
     async appendContentToSession(sessionId: string, content: ContentDocument): Promise<void> {
-        await contentsCollection.insertOne({ ...content, sessionId });
+        await contentsCollection.insertOne({...content, sessionId});
     }
 }

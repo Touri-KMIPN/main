@@ -1,12 +1,12 @@
-import { Content, FunctionCall, GenerateContentConfig, GenerateContentResponse, GoogleGenAI, Part } from "@google/genai";
-import { Spot } from "@/types/spot";
-import { CallableTool_2, CallableToolRequestContext } from "@/types/tool";
-import { zodToFunctionDeclaration } from "@/lib/function";
-import { FileUpload } from "@/app/api/ai/generate/schemas";
-import { MemoryService } from "@/services/server/MemoryService";
-import { KindeUser } from "@kinde-oss/kinde-auth-nextjs";
-import { ContentDocument } from "@/database/collections/contents";
-import { SessionDocument } from "@/database/collections/sessions";
+import {Content, FunctionCall, GenerateContentConfig, GenerateContentResponse, GoogleGenAI, Part} from "@google/genai";
+import {Spot} from "@/types/spot";
+import {CallableTool_2, CallableToolRequestContext} from "@/types/tool";
+import {zodToFunctionDeclaration} from "@/lib/function";
+import {FileUpload} from "@/app/api/ai/generate/schemas";
+import {SessionService} from "@/services/server/SessionService";
+import {KindeUser} from "@kinde-oss/kinde-auth-nextjs";
+import {ContentDocument} from "@/database/collections/contents";
+import {SessionDocument} from "@/database/collections/sessions";
 
 const SYSTEM_PROMPT = `
                 Your name is Touri, an AI assistant for a tourism app.
@@ -62,6 +62,7 @@ const SYSTEM_PROMPT = `
 export class TouriChatService {
     isGenerating: boolean = false;
     sessionId: string | null = null;
+    session: SessionDocument | null = null
     ai: GoogleGenAI;
     history: ContentDocument[];
     tools: Map<string, CallableTool_2>;
@@ -76,10 +77,9 @@ export class TouriChatService {
     onGenerationEnd: () => void;
     onThoughtStream: (thought: string) => void;
     onSessionCreation: (session: SessionDocument) => void
-    memoryService: MemoryService
+    sessionService: SessionService
 
-    constructor(
-        {
+    constructor({
             sessionId,
             user,
             onGenerationStart,
@@ -127,7 +127,7 @@ export class TouriChatService {
         this.onGenerationEnd = onGenerationEnd;
         this.onThoughtStream = onThoughtStream;
         this.onSessionCreation = onSessionCreation;
-        this.memoryService = new MemoryService();
+        this.sessionService = new SessionService();
         this.sessionId = sessionId;
 
         // Convert tools array to a Map for easier access
@@ -136,7 +136,7 @@ export class TouriChatService {
 
     async pushHistory(content: ContentDocument) {
         // Save to db
-        await this.memoryService.appendContentToSession(this.sessionId!, {
+        await this.sessionService.appendContentToSession(this.sessionId!, {
             sessionId: this.sessionId!,
             parts: content.parts,
             role: content.role,
@@ -147,21 +147,58 @@ export class TouriChatService {
         this.onHistoryChange(this.history);
     }
 
-    pushSpot(spots: Spot[]) {
+    /**
+     * Push new spots to the chat (e.g., when a tool returns places)
+     * @param spots Array of spots to add
+     * @private
+     */
+    private pushSpot(spots: Spot[]) {
         this.onSpotAddition(spots);
     }
 
-    endGeneration() {
+    /**
+     * Mark the end of a generation cycle
+     * @private
+     */
+    private endGeneration() {
         this.onGenerationEnd();
         this.isGenerating = false;
     }
 
-    startGeneration() {
+    /**
+     * Mark the start of a generation cycle
+     * @private
+     */
+    private startGeneration() {
         this.isGenerating = true;
         this.onGenerationStart();
     }
 
-    createConfig(): GenerateContentConfig {
+    /**
+     * Create a concise summary of the session from the initial message
+     * @param initialMessage
+     */
+    private async createSessionSummary(initialMessage: string) {
+        return await this.ai.models.generateContent({
+            config: {
+                systemInstruction: "Generate a concise summary of the following conversation between a user and an AI assistant. The summary should capture the main topics discussed and any important details. Keep it brief, ideally under 50 words.",
+                thinkingConfig: {
+                    thinkingBudget: 0
+                }
+            },
+            model: 'gemini-2.5-flash',
+            contents: {
+                role: "user",
+                text: initialMessage
+            }
+        })
+    }
+
+    /**
+     * Create the configuration for content generation, including system prompts and tool definitions
+     * @private
+     */
+    private createConfig(): GenerateContentConfig {
         return {
             thinkingConfig: {
                 thinkingBudget: 128,
@@ -181,40 +218,58 @@ export class TouriChatService {
         }
     }
 
-    async startChat() {
-        let session: SessionDocument | null = null
+    /**
+     * Initialize or load a chat session
+     * @param initialMessage Optional initial message to kickstart the session (used to generate summary)
+     */
+    private async initializeSession(initialMessage?: string) {
         if (this.sessionId) {
-            session = await this.memoryService.getSessionById(this.sessionId);
+            this.session = await this.sessionService.getSessionById(this.sessionId);
         } else {
             // New session
-            const newSession = await this.memoryService.createSession("New Chat Session", this.context.authenticatedUserId!);
+            const summary = await this.createSessionSummary(initialMessage ?? "New chat session");
+
+            const newSession = await this.sessionService
+                .createSession(
+                    summary.text ?? "New chat session",
+                    this.context.authenticatedUserId!
+                );
             this.sessionId = newSession.id;
             this.history = [];
             this.onHistoryChange(this.history);
             this.onSessionCreation(newSession)
-            session = newSession;
+            this.session = newSession;
         }
 
-        if (!session) {
+        if (!this.session) {
             throw new Error("Session not found");
         }
 
-        const messages = await this.memoryService.getSessionMessages(session.id);
+        const messages = await this.sessionService.getSessionMessages(this.session.id);
 
         this.history = messages;
         this.onHistoryChange(this.history);
     }
 
+    /**
+     * Send a message to the AI model, handling session initialization and response streaming
+     * @param message The user's message
+     * @param files Optional files to include with the message
+     */
     async sendMessage(message: string, files: FileUpload[]): Promise<void> {
         if (this.isGenerating) {
             return // Break if the chat is still generating
         }
 
         try {
+            if (!this.session) {
+                await this.initializeSession(message);
+            }
+
             await this.pushHistory({
                 role: 'user',
                 parts: [
-                    { text: message },
+                    {text: message},
                     ...files.map(file => ({
                         inlineData: {
                             data: file.content,
@@ -240,6 +295,10 @@ export class TouriChatService {
         }
     }
 
+    /**
+     * Handle streaming messages from the AI model, including tool calls and response parts
+     * @param response Async generator yielding parts of the AI response
+     */
     async handleMessage(response: AsyncGenerator<GenerateContentResponse>): Promise<void> {
         let hasStarted = false;
         let fullResponse = ''
@@ -287,7 +346,7 @@ export class TouriChatService {
         if (fullResponse) {
             await this.pushHistory({
                 role: 'assistant',
-                parts: [{ text: fullResponse }],
+                parts: [{text: fullResponse}],
                 sessionId: this.sessionId!,
             });
         }
@@ -295,6 +354,12 @@ export class TouriChatService {
         this.onResponseEnd();
     }
 
+    /**
+     * Handle tool function calls made by the AI model
+     * @param calls Array of function calls to process
+     * @param context Context for tool execution
+     * @returns Array of Parts representing tool responses
+     */
     async handleToolCalls(calls: FunctionCall[], context: CallableToolRequestContext): Promise<Part[]> {
         const toolResponses: Part[] = [];
 
