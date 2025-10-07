@@ -42,8 +42,6 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    console.log(headers)
-
     // Validate body
     const body = GenerateRequestBodySchema.safeParse(await request.json());
     if (!body.success) {

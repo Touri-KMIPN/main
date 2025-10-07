@@ -32,7 +32,6 @@ export default function Conversation({messages, setMessages, chatSessionId}: Con
             {
                 onSpotsAddition: (spots: Spot[]) => {
                     /* onSpotsAddition */
-                    console.log("New spots added:", spots)
                     setSpots(prev => prev.concat(spots))
                 },
                 onResponseStream: (chunk) => {

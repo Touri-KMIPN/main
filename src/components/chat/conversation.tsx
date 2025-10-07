@@ -27,7 +27,6 @@ export default function Conversation({messages, setMessages, tools}: Conversatio
         const service = new TouriChatService(
             (spots) => {
                 /* onSpotAddition */
-                console.log("New spots added:", spots)
                 setSpots(prev => prev.concat(spots))
             },
             (_) => {
