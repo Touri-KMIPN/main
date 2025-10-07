@@ -5,7 +5,7 @@ import { SpotsProvider } from "@/providers/SpotsProvider";
 import { Message } from "@/types/chat";
 import { useSearchParams } from "next/navigation";
 import React, { useEffect, useMemo, useState } from "react";
-import MapView from "../map/page";
+import MapView from "../map/_components/map-view";
 import { Button } from "@/components/ui/button";
 import { Loader, Map, XIcon } from "lucide-react";
 import { contentToMessage } from "@/lib/chat";
