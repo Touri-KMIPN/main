@@ -119,7 +119,6 @@ export default function CameraPreviewSDK({ onTranscription }: CameraPreviewSDKPr
       },
       (isPlaying) => setIsModelSpeaking(isPlaying),
       (level) => setOutputAudioLevel(level),
-      onTranscription,
       []
     );
     geminiRef.current.connect();
