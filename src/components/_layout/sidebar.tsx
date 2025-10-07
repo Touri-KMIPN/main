@@ -18,11 +18,12 @@ import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 import { SessionDocument } from "@/database/collections/sessions";
 import Link from "next/link";
+import { ModeToggle } from "../theme-toggle";
 
 interface SidebarProps {
   isOpen: boolean;
   onToggle: () => void;
-  sessions: SessionDocument[]
+  sessions: SessionDocument[];
 }
 
 export function Sidebar({ isOpen, onToggle, sessions }: SidebarProps) {
@@ -30,8 +31,9 @@ export function Sidebar({ isOpen, onToggle, sessions }: SidebarProps) {
 
   return (
     <aside
-      className={`relative flex flex-col border-r border-border bg-sidebar transition-all duration-300 ${isOpen ? "w-58" : "w-16"
-        }`}
+      className={`relative flex flex-col z-20 border-r border-border bg-sidebar transition-all duration-300 ${
+        isOpen ? "w-full md:w-58" : "w-16"
+      }`}
     >
       {/* Header */}
       <div className="flex h-16 items-center justify-between px-4">
@@ -66,9 +68,7 @@ export function Sidebar({ isOpen, onToggle, sessions }: SidebarProps) {
       <nav className="flex-1 space-y-1 px-3 py-4">
         <Button
           variant={isOpen ? "default" : "ghost"}
-          className={cn("w-full gap-3 ",
-            isOpen && "justify-center px-2")
-          }
+          className={cn("w-full gap-3 ", isOpen && "justify-center px-2")}
         >
           <MessageCirclePlusIcon className="h-5 w-5 shrink-0" />
           {isOpen && <span className="text-sm">New Chat</span>}
@@ -82,8 +82,9 @@ export function Sidebar({ isOpen, onToggle, sessions }: SidebarProps) {
                 <Link key={index} href={`/chat/${item.id}`}>
                   <Button
                     variant="ghost"
-                    className={`w-full justify-start gap-3 ${!isOpen && "justify-center px-2"
-                      } text-muted-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"`}
+                    className={`w-full justify-start gap-3 ${
+                      !isOpen && "justify-center px-2"
+                    } text-muted-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"`}
                   >
                     {item.summary.length > 20
                       ? `${item.summary.substring(0, 20)}...`
@@ -100,8 +101,7 @@ export function Sidebar({ isOpen, onToggle, sessions }: SidebarProps) {
       <div className="border-t border-sidebar-border p-4">
         {isOpen ? (
           <div className="flex items-center gap-3">
-            <div
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent text-primary-foreground">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent text-primary-foreground">
               <span className="text-sm font-semibold">
                 {user?.given_name?.charAt(0)}
               </span>
@@ -114,12 +114,14 @@ export function Sidebar({ isOpen, onToggle, sessions }: SidebarProps) {
                 {user?.email}
               </p>
             </div>
+            <ModeToggle />
           </div>
         ) : (
           <div className="flex justify-center">
-            <div
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent text-primary-foreground">
-              <span className="text-sm font-semibold">{user?.given_name?.charAt(0)}</span>
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent text-primary-foreground">
+              <span className="text-sm font-semibold">
+                {user?.given_name?.charAt(0)}
+              </span>
             </div>
           </div>
         )}
