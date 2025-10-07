@@ -29,41 +29,48 @@ export default function Page() {
           onToggle={() => setSidebarOpen(!sidebarOpen)}
         />
 
-        <div className="flex flex-1 overflow-hidden">
-          {/* Chat Layout - Center */}
+        <div className="flex flex-1 overflow-hidden relative">
+          {/* Chat Layout - Full width on mobile, 2/5 on desktop when map is open */}
           <div
-            className={`flex-1 transition-all duration-300 ${
-              sidebarOpen ? "w-1/3" : "w-2/5"
-            }`}
+            className={cn(
+              "flex-1 transition-all duration-300 overflow-hidden",
+              mapOpen 
+                ? "w-full md:w-2/5" 
+                : "w-full"
+            )}
           >
             <Conversation messages={message} setMessages={setMessage} />
           </div>
 
-          {/* Map Layout - Right (2/3 width) */}
+          {/* Map Layout - Fullscreen on mobile, 2/4 on desktop when open */}
           <div
             className={cn(
-              " transition-all duration-300 border-l border-border relative",
-              mapOpen ? "w-2/4" : "w-0"
+              "transition-all duration-300 border-l border-border overflow-hidden",
+              mapOpen 
+                ? "fixed inset-0 z-40 h-full bg-background md:static md:left-auto md:right-0 md:w-2/4 md:z-auto" 
+                : "w-0 md:w-0"
             )}
           >
-            <MapView />
-            <Button
-              onClick={() => setMapOpen(!mapOpen)}
-              size="icon"
-              variant="outline"
-              className="absolute top-5 left-5 z-50 h-12 w-12 rounded-full shadow-lg hover:shadow-xl transition-all"
-            >
-              <XIcon className="h-5 w-5" />
-            </Button>
+            <div className="h-full w-full relative">
+              <MapView />
+              <Button
+                onClick={() => setMapOpen(!mapOpen)}
+                size="icon"
+                variant="outline"
+                className="absolute top-5 left-5 z-50 h-12 w-12 rounded-full shadow-lg hover:shadow-xl transition-all"
+              >
+                <XIcon className="h-5 w-5" />
+              </Button>
+            </div>
           </div>
 
-          {/* Map Toggle Button */}
+          {/* Map Toggle Button - Only show when map is closed */}
           {!mapOpen && (
             <Button
               onClick={() => setMapOpen(!mapOpen)}
               size="icon"
               variant="outline"
-              className="fixed top-5 right-5 z-50 h-12 w-12 rounded-full shadow-lg hover:shadow-xl transition-all"
+              className="fixed top-5 right-5 z-10 h-12 w-12 rounded-full shadow-lg hover:shadow-xl transition-all"
             >
               <MapIcon className="h-5 w-5" />
             </Button>
