@@ -46,7 +46,6 @@ const PoiMarkers = (props: { pois: Spot[] }) => {
     (ev: google.maps.MapMouseEvent) => {
       if (!map) return;
       if (!ev.latLng) return;
-      console.log("marker clicked: ", ev.latLng.toString());
       // action when marker clicked
       map.panTo(ev.latLng);
     },
