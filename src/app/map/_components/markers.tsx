@@ -1,9 +1,16 @@
-import { AdvancedMarker, useMap } from "@vis.gl/react-google-maps"
-import { useState, useRef, useCallback, useEffect } from "react"
-import { MarkerClusterer } from "@googlemaps/markerclusterer"
-import type { Marker } from "@googlemaps/markerclusterer"
-import { Spot, PlaceType } from "@/types/spot"
-import { getPlaceIcon } from "@/lib/place-icons"
+import { AdvancedMarker, useMap } from "@vis.gl/react-google-maps";
+import { useState, useRef, useCallback, useEffect } from "react";
+import { MarkerClusterer } from "@googlemaps/markerclusterer";
+import type { Marker } from "@googlemaps/markerclusterer";
+import { Spot, PlaceType } from "@/types/spot";
+import { getPlaceIcon } from "@/lib/place-icons";
+import SpotCard from "@/components/spot-card";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 // pins
 const PoiMarkers = (props: { pois: Spot[] }) => {
@@ -58,23 +65,37 @@ const PoiMarkers = (props: { pois: Spot[] }) => {
         // Get the primary type (first type) for icon
         const primaryType = poi.types[0] as PlaceType;
         const Icon = getPlaceIcon(primaryType);
-        
+
         return (
           <AdvancedMarker
             key={idx}
-            position={{lat: poi.location.latitude, lng: poi.location.longitude}}
+            position={{
+              lat: poi.location.latitude,
+              lng: poi.location.longitude,
+            }}
             ref={(marker) => setMarkerRef(marker, poi.displayName.text)}
             onClick={handleClick}
             clickable={true}
           >
-            <div className="flex flex-col items-center gap-1">
-              <div className="p-2 rounded-full border bg-white text-black shadow-lg">
-                <Icon className="size-4" />
-              </div>
-              <p className="bg-background px-1 rounded-lg text-xs font-medium">
-                {poi.displayName.text.replace(/([A-Z])/g, " $1").trim()}
-              </p>
-            </div>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <div className="flex flex-col items-center gap-1">
+                    <div className="p-2 rounded-full border border-border bg-white text-black shadow-lg">
+                      <Icon className="size-4" />
+                    </div>
+                    <p className="bg-background px-1 rounded-lg text-xs font-medium">
+                      {poi.displayName.text.replace(/([A-Z])/g, " $1").trim()}
+                    </p>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent className="bg-accent/80 backdrop-blur-sm" side="right">
+                  <div className="w-64">
+                    <SpotCard spot={poi} />
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </AdvancedMarker>
         );
       })}
