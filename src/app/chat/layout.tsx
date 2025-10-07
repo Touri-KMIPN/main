@@ -12,7 +12,7 @@ import { Sidebar } from '@/components/_layout/sidebar'
 import { cn } from '@/lib/utils'
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-    const [mapOpen, setMapOpen] = useState(true);
+    const [mapOpen, setMapOpen] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const { data: sessions } = useSessionsQuery();
     return (
