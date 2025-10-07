@@ -17,7 +17,7 @@ export const GenerateRequestBodySchema = z.object({
 export const GenerateRequestHeaderSchema = z.object({
     geolat: z.string().optional(),
     geolng: z.string().optional(),
-    sessionId: z.string().optional(),
+    sessionid: z.string().optional(),
 })
 
 export type GenerateRequestBody = z.infer<typeof GenerateRequestBodySchema>;
