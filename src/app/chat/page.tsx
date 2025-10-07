@@ -8,7 +8,8 @@ import { redirect } from "next/navigation";
 import React, { useState } from "react";
 import MapView from "../map/page";
 import { Button } from "@/components/ui/button";
-import { Map, XIcon } from "lucide-react";
+import { MapIcon, XIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export default function Page() {
   const [message, setMessage] = React.useState<Message[]>([]);
@@ -39,19 +40,24 @@ export default function Page() {
           </div>
 
           {/* Map Layout - Right (2/3 width) */}
-          {mapOpen && (
-            <div className="w-2/4 border-l border-border relative">
-              <MapView />
-              <Button
-                onClick={() => setMapOpen(!mapOpen)}
-                size="icon"
-                variant="outline"
-                className="absolute top-5 left-5 z-50 h-12 w-12 rounded-full shadow-lg hover:shadow-xl transition-all"
-              >
-                <XIcon className="h-5 w-5" />
-              </Button>
-            </div>
-          )}
+          <div
+            className={cn(
+              " transition-all duration-300 border-l border-border relative",
+              mapOpen ? "w-2/4" : "w-0"
+            )}
+          >
+            <MapView />
+            <Button
+              onClick={() => setMapOpen(!mapOpen)}
+              size="icon"
+              variant="outline"
+              className="absolute top-5 left-5 z-50 h-12 w-12 rounded-full shadow-lg hover:shadow-xl transition-all"
+            >
+              <XIcon className="h-5 w-5" />
+            </Button>
+          </div>
+
+          {/* Map Toggle Button */}
           {!mapOpen && (
             <Button
               onClick={() => setMapOpen(!mapOpen)}
@@ -59,7 +65,7 @@ export default function Page() {
               variant="outline"
               className="fixed top-5 right-5 z-50 h-12 w-12 rounded-full shadow-lg hover:shadow-xl transition-all"
             >
-              <Map className="h-5 w-5" />
+              <MapIcon className="h-5 w-5" />
             </Button>
           )}
         </div>
