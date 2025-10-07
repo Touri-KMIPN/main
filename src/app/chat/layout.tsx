@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { MapIcon, XIcon } from 'lucide-react'
 import { useSessionsQuery } from '@/queries/session-query'
 import { Sidebar } from '@/components/_layout/sidebar'
+import { cn } from '@/lib/utils'
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
     const [mapOpen, setMapOpen] = useState(true);
@@ -28,15 +29,26 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                             <div className="flex flex-1 overflow-hidden">
 
                                 <div
-                                    className={`flex-1 transition-all duration-300 ${sidebarOpen ? "w-1/3" : "w-2/5"
-                                        }`}
+                                    className={cn(
+                                        "flex-1 transition-all duration-300 overflow-hidden",
+                                        mapOpen
+                                            ? "w-full md:w-2/5"
+                                            : "w-full"
+                                    )}
                                 >
                                     {children}
                                 </div>
 
-                                {/* Map Layout - Right (2/3 width) */}
-                                {mapOpen && (
-                                    <div className="w-2/4 border-l border-border relative">
+                                {/* Map Layout - Fullscreen on mobile, 2/4 on desktop when open */}
+                                <div
+                                    className={cn(
+                                        "transition-all duration-300 border-l border-border overflow-hidden",
+                                        mapOpen
+                                            ? "fixed inset-0 z-40 h-full bg-background md:static md:left-auto md:right-0 md:w-2/4 md:z-auto"
+                                            : "w-0 md:w-0"
+                                    )}
+                                >
+                                    <div className="h-full w-full relative">
                                         <MapView />
                                         <Button
                                             onClick={() => setMapOpen(!mapOpen)}
@@ -47,13 +59,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                             <XIcon className="h-5 w-5" />
                                         </Button>
                                     </div>
-                                )}
+                                </div>
+
+                                {/* Map Toggle Button - Only show when map is closed */}
                                 {!mapOpen && (
                                     <Button
                                         onClick={() => setMapOpen(!mapOpen)}
                                         size="icon"
                                         variant="outline"
-                                        className="fixed top-5 right-5 z-50 h-12 w-12 rounded-full shadow-lg hover:shadow-xl transition-all"
+                                        className="fixed top-5 right-5 z-10 h-12 w-12 rounded-full shadow-lg hover:shadow-xl transition-all"
                                     >
                                         <MapIcon className="h-5 w-5" />
                                     </Button>
