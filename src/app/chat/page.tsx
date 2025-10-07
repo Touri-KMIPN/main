@@ -6,7 +6,7 @@ import { Message } from "@/types/chat";
 import { useKindeAuth } from "@kinde-oss/kinde-auth-nextjs";
 import { redirect } from "next/navigation";
 import React, { useState } from "react";
-import MapView from "../map/page";
+import MapView from "../map/_components/map-view";
 import { Button } from "@/components/ui/button";
 import { Map, XIcon } from "lucide-react";
 
