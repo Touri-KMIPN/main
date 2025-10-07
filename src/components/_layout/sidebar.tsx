@@ -44,7 +44,6 @@ export function Sidebar({ isOpen, onToggle, sessions }: SidebarProps) {
               height={32}
               alt={"Touri"}
             />
-            {/* </div> */}
             <h1 className="text-xl font-bold text-sidebar-foreground">Touri</h1>
           </div>
         )}
@@ -64,15 +63,17 @@ export function Sidebar({ isOpen, onToggle, sessions }: SidebarProps) {
 
       {/* Menu Items */}
       <nav className="flex-1 space-y-1 px-3 py-4">
-        <Button
-          variant={isOpen ? "default" : "ghost"}
-          className={cn("w-full gap-3 ",
-            isOpen && "justify-center px-2")
-          }
-        >
-          <MessageCirclePlusIcon className="h-5 w-5 shrink-0" />
-          {isOpen && <span className="text-sm">New Chat</span>}
-        </Button>
+        <Link href={"/chat?new=true"}>
+          <Button
+            variant={isOpen ? "default" : "ghost"}
+            className={cn("w-full gap-3 ",
+              isOpen && "justify-center px-2")
+            }
+          >
+            <MessageCirclePlusIcon className="h-5 w-5 shrink-0" />
+            {isOpen && <span className="text-sm">New Chat</span>}
+          </Button>
+        </Link>
         {isOpen && (
           <>
             <Separator className={"my-2"} />

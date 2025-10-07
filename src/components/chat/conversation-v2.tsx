@@ -7,7 +7,7 @@ import {ScrollArea} from '../ui/scroll-area'
 import ChatMessage from './chat-message'
 import PromptInput from './prompt-input'
 import {fileToBase64} from "@/lib/base64";
-import {useRouter, useSearchParams} from "next/navigation";
+import {useRouter} from "next/navigation";
 import {useQueryClient} from "@tanstack/react-query";
 
 type ConversationProps = {
@@ -20,7 +20,7 @@ export default function Conversation({messages, setMessages, chatSessionId}: Con
     const {setSpots} = useSpots()
     const chatServiceRef = useRef<TouriClientChatService | null>(null)
     const [loading, setLoading] = useState(false)
-    const [sessionId, setSessionId] = useState<string | null>(chatSessionId)
+    const [sessionId, _] = useState<string | null>(chatSessionId)
 
     const router = useRouter()
 

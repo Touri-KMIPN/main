@@ -42,6 +42,8 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    console.log(headers)
+
     // Validate body
     const body = GenerateRequestBodySchema.safeParse(await request.json());
     if (!body.success) {
@@ -60,7 +62,7 @@ export async function POST(request: NextRequest) {
         // Use the Google GenAI SDK to generate content based on the request body
 
         const touriChatService = new TouriChatService({
-          sessionId: headers.data.sessionId ?? null,
+          sessionId: headers.data.sessionid ?? null,
           onSpotAddition: (spots) => {
             controller.enqueue(
               encoder.encode(

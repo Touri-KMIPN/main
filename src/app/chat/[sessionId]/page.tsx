@@ -18,8 +18,7 @@ export default function Page({ params }: { params: Promise<{ sessionId: string }
     if (sessionMessages) {
       setMessages(
         sessionMessages
-          .reverse()
-          .map(contentToMessage)
+        .map(contentToMessage)
       );
     }
   }, [sessionMessages])
