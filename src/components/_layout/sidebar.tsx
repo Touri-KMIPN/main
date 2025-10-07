@@ -10,6 +10,8 @@ import {
   Database,
   Sparkles,
   MessageCirclePlusIcon,
+  AlignJustifyIcon,
+  XIcon,
 } from "lucide-react";
 import Image from "next/image";
 
@@ -67,9 +69,9 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
           className="h-9 w-9 text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground"
         >
           {isOpen ? (
-            <ChevronLeft className="h-4 w-4" />
+            <XIcon className="h-5 w-5" />
           ) : (
-            <ChevronRight className="h-4 w-4" />
+            <AlignJustifyIcon className="h-5 w-5" />
           )}
         </Button>
       </div>
