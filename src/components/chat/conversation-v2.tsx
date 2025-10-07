@@ -7,20 +7,27 @@ import {ScrollArea} from '../ui/scroll-area'
 import ChatMessage from './chat-message'
 import PromptInput from './prompt-input'
 import {fileToBase64} from "@/lib/base64";
+import {useRouter, useSearchParams} from "next/navigation";
 
 type ConversationProps = {
+    chatSessionId: string | null,
     messages: Message[],
     setMessages: React.Dispatch<React.SetStateAction<Message[]>>,
 }
 
-export default function Conversation({messages, setMessages}: ConversationProps) {
+export default function Conversation({messages, setMessages, chatSessionId}: ConversationProps) {
     const {setSpots} = useSpots()
     const chatServiceRef = useRef<TouriClientChatService | null>(null)
     const [loading, setLoading] = useState(false)
+    const [sessionId, setSessionId] = useState<string | null>(chatSessionId)
+
+    const router = useRouter()
+
+    const searchParams = useSearchParams();
 
     useEffect(() => {
-        const service = new TouriClientChatService(
-            null, // sessionId
+        chatServiceRef.current = new TouriClientChatService(
+            sessionId,
             {
                 onSpotsAddition: (spots: Spot[]) => {
                     /* onSpotsAddition */
@@ -54,11 +61,15 @@ export default function Conversation({messages, setMessages}: ConversationProps)
                         const filtered = prev.filter(msg => !(msg.role === 'assistant' && msg.text === ''));
                         return [...filtered, {role: 'assistant', text: ''}];
                     });
+                },
+                onSessionCreation: (sessionId) => {
+                    // If a new session is created, we can navigate to it
+                    if (sessionId) {
+                        router.push(`/chat?session=${sessionId}`);
+                    }
                 }
             }
         )
-
-        chatServiceRef.current = service
     }, [setSpots, setMessages])
 
     const handleSend = async (message: string, files: File[]) => {
