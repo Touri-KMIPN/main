@@ -13,6 +13,8 @@ interface ISessionService {
     getUserSession(userId: string): Promise<SessionDocument[]>;
 
     appendContentToSession(sessionId: string, content: ContentDocument): Promise<void>;
+
+    deleteSession: (sessionId: string) => Promise<void>;
 }
 
 export class SessionService implements ISessionService {
@@ -48,5 +50,9 @@ export class SessionService implements ISessionService {
 
     async appendContentToSession(sessionId: string, content: Omit<ContentDocument, "createdAt">): Promise<void> {
         await contentsCollection.insertOne({ ...content, sessionId, createdAt: new Date() });
+    }
+
+    async deleteSession(sessionId: string): Promise<void> {
+        await sessionsCollection.deleteOne({ id: sessionId })
     }
 }
