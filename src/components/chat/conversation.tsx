@@ -100,7 +100,7 @@ export default function Conversation({messages, setMessages, tools}: Conversatio
                             <ChatMessage key={index} {...msg} />
                         ))}
             </ScrollArea>
-            <div className='fixed bottom-0 left-0 right-0 h-32'>
+            <div className='h-32'>
                 <div className='max-w-screen-sm mx-auto p-4 z-10'>
                     <PromptInput onSend={() => {}} loading={false}/>
                 </div>
