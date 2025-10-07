@@ -94,6 +94,10 @@ export default function MapPage() {
             defaultZoom={latitude && longitude ? 15 : 13}
             defaultCenter={mapCenter}
             mapId={mapId}
+            mapTypeControl={false}
+            streetViewControl={true}
+            cameraControl={false}
+            fullscreenControl={true}
           >
             <SpotMarkers pois={locations} />
             {/* show user location */}
