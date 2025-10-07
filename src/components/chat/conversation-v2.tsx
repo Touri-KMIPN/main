@@ -126,7 +126,7 @@ export default function Conversation({messages, setMessages, chatSessionId}: Con
             ) : (
               <div className="py-4 space-y-4">
                 {messages
-                  .filter((m) => m.role === "user" || m.role === "assistant")
+                  .filter((m) => m.role === "user" || m.role === "model" || m.role === "assistant")
                   .map((msg, index) => (
                     <ChatMessage
                       key={index}

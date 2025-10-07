@@ -1,10 +1,9 @@
 import { Message } from "@/types/chat";
 import React, { useMemo } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { SparkleIcon, SparklesIcon, User2 } from "lucide-react";
+import {  SparklesIcon, User2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MarkdownLLM } from "./markdown-renderer";
-import { Separator } from "../ui/separator";
 import { useSpots } from "@/providers/SpotsProvider";
 import { base64ToFile } from "@/lib/base64";
 import FilePreview from "./file-preview";
@@ -21,6 +20,8 @@ export default function ChatMessage({
     return files?.map((file) => base64ToFile(file.content, file.mimeType));
   }, [files]);
 
+  console.log(role)
+
   return (
     <div className="m-4">
       <div
@@ -32,7 +33,7 @@ export default function ChatMessage({
         <Avatar className="size-6">
           <AvatarFallback
             className={cn(
-              role === "assistant"
+              role === "model"
                 ? "bg-primary text-primary-foreground"
                 : "bg-secondary"
             )}

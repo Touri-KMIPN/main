@@ -316,7 +316,7 @@ export class TouriChatService {
             if (chunk.functionCalls) {
                 const toolParts = await this.handleToolCalls(chunk.functionCalls, this.context);
                 await this.pushHistory({
-                    role: 'user',
+                    role: 'function',
                     parts: toolParts,
                     sessionId: this.sessionId!,
                     createdAt: new Date(),
