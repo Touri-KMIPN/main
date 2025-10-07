@@ -44,7 +44,7 @@ export function HoverSpot({ label, spot }: HoverSpotProps) {
   return (
     <HoverCard>
       <HoverCardTrigger asChild>
-        <span className="px-1 underline decoration-dotted hover:cursor-help rounded-lg hover:bg-muted">
+        <span className="px-1 underline decoration-dotted hover:cursor-pointer rounded-lg hover:bg-muted">
           {label}
         </span>
       </HoverCardTrigger>
