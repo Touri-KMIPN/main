@@ -43,8 +43,8 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
 
   return (
     <aside
-      className={`relative flex flex-col border-r border-border bg-sidebar transition-all duration-300 ${
-        isOpen ? "w-58" : "w-16"
+      className={`z-50 relative flex flex-col border-r border-border bg-sidebar transition-all duration-300 ${
+        isOpen ? "md:w-58 w-full" : "w-16"
       }`}
     >
       {/* Header */}
