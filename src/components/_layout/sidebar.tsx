@@ -2,13 +2,6 @@
 import { Button } from "@/components/ui/button";
 import { useKindeAuth } from "@kinde-oss/kinde-auth-nextjs";
 import {
-  Map,
-  Settings,
-  ChevronLeft,
-  ChevronRight,
-  Activity,
-  Database,
-  Sparkles,
   MessageCirclePlusIcon,
   XIcon,
   AlignJustifyIcon,
@@ -82,7 +75,7 @@ export function Sidebar({ isOpen, onToggle, sessions }: SidebarProps) {
             {/* History Item */}
             <div className="flex flex-col gap-2 overflow-hidden">
               {sessions.map((item, index) => (
-                <Link key={index} href={`/chat/${item.id}`}>
+                <Link key={index} href={`/chat/${item.id}`} className="hover:cursor-pointer">
                   <Button
                     variant="ghost"
                     className={`w-full justify-start gap-3 ${
