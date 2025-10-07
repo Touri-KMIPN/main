@@ -1,6 +1,6 @@
 import React from 'react'
 
-import {Button} from '../ui/button'
+import { Button } from '../ui/button'
 import {
     Tooltip,
     TooltipContent,
@@ -13,17 +13,18 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover"
 
-import {CloudUploadIcon, EyeIcon, Loader2, PaperclipIcon, SendIcon} from 'lucide-react'
+import { CloudUploadIcon, EyeIcon, Loader2, PaperclipIcon, SendIcon } from 'lucide-react'
 import Link from 'next/link'
 import FilePreview from "@/components/chat/file-preview";
-import {cn} from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 type PromptInput = {
     onSend: (message: string, files: File[]) => void
-    loading: boolean
+    loading: boolean,
+    className?: string,
 }
 
-export default function PromptInput({onSend, loading}: PromptInput) {
+export default function PromptInput({ onSend, loading, className }: PromptInput) {
     const [input, setInput] = React.useState("")
     const [files, setFiles] = React.useState<File[]>([])
 
@@ -43,7 +44,7 @@ export default function PromptInput({onSend, loading}: PromptInput) {
     }
 
     return (
-        <div className='flex flex-col gap-2 p-2 rounded-lg bg-background border'>
+        <div className={cn('flex flex-col gap-2 p-2 rounded-lg bg-background border', className)}>
             <div className={cn('flex gap-2 overflow-x-auto', files.length === 0 && 'hidden')}>
                 {files.map((file, index) => (
                     <div key={index} className='relative'>
@@ -81,7 +82,7 @@ export default function PromptInput({onSend, loading}: PromptInput) {
                                         variant="secondary"
                                         className='size-8 rounded-full'
                                     >
-                                        <PaperclipIcon/>
+                                        <PaperclipIcon />
                                     </Button>
                                 </TooltipTrigger>
                             </PopoverTrigger>
@@ -106,7 +107,7 @@ export default function PromptInput({onSend, loading}: PromptInput) {
                                 onClick={handleSend}>
 
                                 Magic Vision
-                                <EyeIcon/>
+                                <EyeIcon />
                             </Button>
                         </Link>
                         <Button
@@ -116,8 +117,8 @@ export default function PromptInput({onSend, loading}: PromptInput) {
                             onClick={handleSend}>
                             Send
                             {loading
-                                ? <Loader2 className='animate-spin'/>
-                                : <SendIcon/>
+                                ? <Loader2 className='animate-spin' />
+                                : <SendIcon />
                             }
                         </Button>
                     </TooltipProvider>
@@ -156,7 +157,7 @@ function IncludeFilePopoverContent(
                 onClick={handleFileClick}
             >
                 <div className="flex items-center gap-2">
-                    <CloudUploadIcon className='w-4 h-4'/>
+                    <CloudUploadIcon className='w-4 h-4' />
                     <h4>Upload file</h4>
                 </div>
                 <p className='text-xs text-muted-foreground'>Upload your screenshots or PDF files to the chat, and start

@@ -1,12 +1,12 @@
-import {Content, FunctionCall, GenerateContentConfig, GenerateContentResponse, GoogleGenAI, Part} from "@google/genai";
-import {Spot} from "@/types/spot";
-import {CallableTool_2, CallableToolRequestContext} from "@/types/tool";
-import {zodToFunctionDeclaration} from "@/lib/function";
-import {FileUpload} from "@/app/api/ai/generate/schemas";
-import {SessionService} from "@/services/server/SessionService";
-import {KindeUser} from "@kinde-oss/kinde-auth-nextjs";
-import {ContentDocument} from "@/database/collections/contents";
-import {SessionDocument} from "@/database/collections/sessions";
+import { Content, FunctionCall, GenerateContentConfig, GenerateContentResponse, GoogleGenAI, Part } from "@google/genai";
+import { Spot } from "@/types/spot";
+import { CallableTool_2, CallableToolRequestContext } from "@/types/tool";
+import { zodToFunctionDeclaration } from "@/lib/function";
+import { FileUpload } from "@/app/api/ai/generate/schemas";
+import { SessionService } from "@/services/server/SessionService";
+import { KindeUser } from "@kinde-oss/kinde-auth-nextjs";
+import { ContentDocument } from "@/database/collections/contents";
+import { SessionDocument } from "@/database/collections/sessions";
 
 const SYSTEM_PROMPT = `
                 Your name is Touri, an AI assistant for a tourism app.
@@ -80,34 +80,34 @@ export class TouriChatService {
     sessionService: SessionService
 
     constructor({
-            sessionId,
-            user,
-            onGenerationStart,
-            onResponseStart,
-            onResponseStream,
-            onResponseEnd,
-            onGenerationEnd,
-            onThoughtStream,
-            tools,
-            onHistoryChange,
-            onHistoryPush,
-            onSpotAddition,
-            onSessionCreation
-        }: {
-            sessionId: string | null,
-            user: KindeUser<Record<string, any>>,
-            tools: CallableTool_2[],
-            onSpotAddition: (spots: Spot[]) => void,
-            onHistoryChange: (memory: Content[]) => void,
-            onHistoryPush: (memory: Content) => void,
-            onResponseStream: (chunk: string) => void,
-            onResponseStart: () => void,
-            onResponseEnd: () => void,
-            onGenerationStart: () => void,
-            onGenerationEnd: () => void,
-            onThoughtStream: (thought: string) => void,
-            onSessionCreation: (session: SessionDocument) => void
-        }
+        sessionId,
+        user,
+        onGenerationStart,
+        onResponseStart,
+        onResponseStream,
+        onResponseEnd,
+        onGenerationEnd,
+        onThoughtStream,
+        tools,
+        onHistoryChange,
+        onHistoryPush,
+        onSpotAddition,
+        onSessionCreation
+    }: {
+        sessionId: string | null,
+        user: KindeUser<Record<string, any>>,
+        tools: CallableTool_2[],
+        onSpotAddition: (spots: Spot[]) => void,
+        onHistoryChange: (memory: Content[]) => void,
+        onHistoryPush: (memory: Content) => void,
+        onResponseStream: (chunk: string) => void,
+        onResponseStart: () => void,
+        onResponseEnd: () => void,
+        onGenerationStart: () => void,
+        onGenerationEnd: () => void,
+        onThoughtStream: (thought: string) => void,
+        onSessionCreation: (session: SessionDocument) => void
+    }
     ) {
         this.ai = new GoogleGenAI({
             apiKey: process.env.GOOGLE_GENAI_API_KEY!,
@@ -181,7 +181,15 @@ export class TouriChatService {
     private async createSessionSummary(initialMessage: string) {
         return await this.ai.models.generateContent({
             config: {
-                systemInstruction: "Generate a concise summary of the following conversation between a user and an AI assistant. The summary should capture the main topics discussed and any important details. Keep it brief, ideally under 50 words.",
+                systemInstruction: `Generate a concise summary of the following conversation between 
+                a user and an AI assistant. The summary should capture the main topics discussed and
+                any important details. Keep it brief, ideally under 50 words.
+                
+                Examples:
+                - Tourism places in Paris
+                - Looking for historical sites and museums in Rome
+                - Finding family-friendly activities in London
+                `,
                 thinkingConfig: {
                     thinkingBudget: 0
                 }
@@ -269,7 +277,7 @@ export class TouriChatService {
             await this.pushHistory({
                 role: 'user',
                 parts: [
-                    {text: message},
+                    { text: message },
                     ...files.map(file => ({
                         inlineData: {
                             data: file.content,
@@ -278,6 +286,7 @@ export class TouriChatService {
                         }
                     }))] as Part[],
                 sessionId: this.sessionId!,
+                createdAt: new Date(),
             });
 
             const response = await this.ai.models.generateContentStream({
@@ -307,9 +316,10 @@ export class TouriChatService {
             if (chunk.functionCalls) {
                 const toolParts = await this.handleToolCalls(chunk.functionCalls, this.context);
                 await this.pushHistory({
-                    role: 'function',
+                    role: 'user',
                     parts: toolParts,
-                    sessionId: this.sessionId!
+                    sessionId: this.sessionId!,
+                    createdAt: new Date(),
                 });
 
                 // After handling tool calls, continue the conversation with the updated history
@@ -345,9 +355,10 @@ export class TouriChatService {
         // Add the complete response to history after the loop finishes
         if (fullResponse) {
             await this.pushHistory({
-                role: 'assistant',
-                parts: [{text: fullResponse}],
+                role: 'model',
+                parts: [{ text: fullResponse }],
                 sessionId: this.sessionId!,
+                createdAt: new Date(),
             });
         }
 

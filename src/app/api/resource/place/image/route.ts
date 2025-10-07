@@ -36,7 +36,6 @@ export async function GET(request: NextRequest) {
             ...(maxHeightPx ? { maxHeightPx: maxHeightPx.toString() } : {}),
             ...(maxWidthPx ? { maxWidthPx: maxWidthPx.toString() } : {})
         });
-        console.log(`https://places.googleapis.com/v1/${name}/media?${requestSeachParams.toString()}`);
         const response = await fetch(`https://places.googleapis.com/v1/${name}/media?${requestSeachParams.toString()}`, {
             method: 'GET',
         })

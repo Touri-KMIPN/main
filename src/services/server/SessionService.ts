@@ -13,6 +13,8 @@ interface ISessionService {
     getUserSession(userId: string): Promise<SessionDocument[]>;
 
     appendContentToSession(sessionId: string, content: ContentDocument): Promise<void>;
+
+    deleteSession: (sessionId: string) => Promise<void>;
 }
 
 export class SessionService implements ISessionService {
@@ -21,7 +23,7 @@ export class SessionService implements ISessionService {
     }
 
     async getUserSession(userId: string): Promise<SessionDocument[]> {
-        return await sessionsCollection.find({ userId }).toArray();
+        return await sessionsCollection.find({ userId }).sort({ createdAt: 1 }).toArray();
     }
 
     async getSessionById(sessionId: string): Promise<SessionDocument | null> {
@@ -42,10 +44,15 @@ export class SessionService implements ISessionService {
     }
 
     async getSessionMessages(sessionId: string): Promise<ContentDocument[]> {
+        // Sort by old message first
         return contentsCollection.find({ sessionId }).sort({ createdAt: 1 }).toArray();
     }
 
-    async appendContentToSession(sessionId: string, content: ContentDocument): Promise<void> {
-        await contentsCollection.insertOne({ ...content, sessionId });
+    async appendContentToSession(sessionId: string, content: Omit<ContentDocument, "createdAt">): Promise<void> {
+        await contentsCollection.insertOne({ ...content, sessionId, createdAt: new Date() });
+    }
+
+    async deleteSession(sessionId: string): Promise<void> {
+        await sessionsCollection.deleteOne({ id: sessionId })
     }
 }
