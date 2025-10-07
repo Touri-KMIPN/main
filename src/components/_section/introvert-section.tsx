@@ -6,7 +6,7 @@ export function IntrovertSection() {
         <div className="grid lg:grid-cols-3 gap-12 px-6 items-center max-w-6xl mx-auto">
           {/* Content */}
           <div className="space-y-6 lg:order-1 lg:col-span-2">
-            <h2 className="text-4xl lg:text-5xl font-bold text-primary text-balance">Introvert? No Problem!</h2>
+            <h2 className="text-4xl lg:text-5xl font-semibold text-primary text-balance">Why Touri?</h2>
 
             <p className="text-lg text-muted-foreground leading-relaxed">
               Use Touri as your travel consultant. Get all the local insights, hidden gems, 

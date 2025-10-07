@@ -13,10 +13,10 @@ import { destinations } from "./popular-destinations.data";
 
 export function PopularDestinationsSection() {
   return (
-    <section className="py-20 md:py-32 px-4">
+    <section className="py-20 md:py-32 px-6">
       <div className="max-w-6xl mx-auto">
         <div className="text-center space-y-4 mb-16 max-w-3xl mx-auto">
-          <h2 className="text-3xl md:text-5xl font-bold text-balance">
+          <h2 className="text-3xl md:text-5xl font-semibold text-primary text-balance">
             Popular Destinations
           </h2>
           <p className="text-lg md:text-xl text-muted-foreground text-pretty leading-relaxed">
