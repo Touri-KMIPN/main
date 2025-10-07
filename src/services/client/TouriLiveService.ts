@@ -1,8 +1,14 @@
-import { TranscriptionService } from "./TranscriptionService";
-import { LiveConnectConfig, MediaResolution, Modality, Session, GoogleGenAI, LiveServerMessage, FunctionCall } from "@google/genai";
-import { pcmToWav } from "@/lib/audio";
-import { Tool } from "@/types/tool";
-import { GetUserLocationTool, ReverseGeocodingTool, SearchPlaceTools } from "@/tools/MapTools";
+import {
+    LiveConnectConfig,
+    MediaResolution,
+    Modality,
+    Session,
+    GoogleGenAI,
+    LiveServerMessage,
+    FunctionCall
+} from "@google/genai";
+import {CallableTool_2} from "@/types/tool";
+import {GetUserLocationTool, ReverseGeocodingTool, SearchPlaceTools} from "@/tools/MapTools";
 
 const MODEL = "gemini-live-2.5-flash-preview";
 const SYSTEM_PROMPT = `
@@ -66,12 +72,12 @@ const CONFIG = {
     },
     contextWindowCompression: {
         triggerTokens: "25600",
-        slidingWindow: { targetTokens: "12800" },
+        slidingWindow: {targetTokens: "12800"},
     },
     systemInstruction: SYSTEM_PROMPT
 } satisfies LiveConnectConfig;
 
-export class GeminiWebSocketSDK {
+export class TouriLiveSDK {
     session: Session | null = null;
     isConnected: boolean = false;
     ai: GoogleGenAI;
@@ -79,7 +85,7 @@ export class GeminiWebSocketSDK {
     onMessageCallback: ((text: string) => void) | null = null;
     onSetupCompleteCallback: (() => void) | null = null;
     audioContext: AudioContext | null = null;
-    tools: Map<string, Tool> = new Map();
+    tools: Map<string, CallableTool_2> = new Map();
 
     // Audio queue management
     audioQueue: Float32Array[] = [];
@@ -88,8 +94,6 @@ export class GeminiWebSocketSDK {
     isPlayingResponse: boolean = false;
     onPlayingStateChange: ((isPlaying: boolean) => void) | null = null;
     onAudioLevelChange: ((level: number) => void) | null = null;
-    onTranscriptionCallback: ((text: string) => void) | null = null;
-    transcriptionService: TranscriptionService;
     accumulatedPcmData: string[] = [];
 
     constructor(
@@ -97,8 +101,7 @@ export class GeminiWebSocketSDK {
         onSetupComplete: () => void,
         onPlayingStateChange: (isPlaying: boolean) => void,
         onAudioLevelChange: (level: number) => void,
-        onTranscription: (text: string) => void,
-        tools: Tool[]
+        tools: CallableTool_2[]
     ) {
         this.ai = new GoogleGenAI({
             // NOTE: For production use Ephemeral tokens; this mirrors existing client-side usage
@@ -108,15 +111,13 @@ export class GeminiWebSocketSDK {
         this.onSetupCompleteCallback = onSetupComplete;
         this.onPlayingStateChange = onPlayingStateChange;
         this.onAudioLevelChange = onAudioLevelChange;
-        this.onTranscriptionCallback = onTranscription;
         // Create AudioContext for playback (24kHz output)
-        this.audioContext = new AudioContext({ sampleRate: 24000 });
-        this.transcriptionService = new TranscriptionService();
+        this.audioContext = new AudioContext({sampleRate: 24000});
 
         tools
             .concat([SearchPlaceTools, GetUserLocationTool, ReverseGeocodingTool]) // always include all map tools
-            .filter((tool) => tool.declaration.name != null)
-            .forEach((tool) => this.tools.set(tool.declaration.name!, tool));
+            .filter((tool) => tool.name != null)
+            .forEach((tool) => this.tools.set(tool.name!, tool));
     }
 
     async connect() {
@@ -292,18 +293,18 @@ export class GeminiWebSocketSDK {
                 }
 
                 // When the turn completes, transcribe accumulated audio
-                if (serverContent.turnComplete === true && this.accumulatedPcmData.length > 0) {
-                    try {
-                        const fullPcmData = this.accumulatedPcmData.join("");
-                        const wavData = await pcmToWav(fullPcmData, 24000);
-                        const transcription = await this.transcriptionService.transcribeAudio(wavData, "audio/wav");
-                        this.onTranscriptionCallback?.(transcription);
-                    } catch (err) {
-                        console.error("[SDK] Transcription error:", err);
-                    } finally {
-                        this.accumulatedPcmData = [];
-                    }
-                }
+                // if (serverContent.turnComplete === true && this.accumulatedPcmData.length > 0) {
+                //     try {
+                //         const fullPcmData = this.accumulatedPcmData.join("");
+                //         const wavData = await pcmToWav(fullPcmData, 24000);
+                //         const transcription = await this.transcriptionService.transcribeAudio(wavData, "audio/wav");
+                //         this.onTranscriptionCallback?.(transcription);
+                //     } catch (err) {
+                //         console.error("[SDK] Transcription error:", err);
+                //     } finally {
+                //         this.accumulatedPcmData = [];
+                //     }
+                // }
             }
 
             // Some SDK live messages may include audio data directly on `data` as base64 PCM16 (24kHz).
@@ -325,7 +326,7 @@ export class GeminiWebSocketSDK {
                                 {
                                     id: call.id,
                                     name: toolName,
-                                    response: { error: `Tool "${toolName}" not found or not available.` },
+                                    response: {error: `Tool "${toolName}" not found or not available.`},
                                 }
                             ]
                         })
@@ -335,7 +336,7 @@ export class GeminiWebSocketSDK {
 
                     try {
                         const args = (call.args ?? {}) as FunctionCall["args"];
-                        const result = await tool.execute(args);
+                        const result = await tool.liveExecute(args);
                         this.session?.sendToolResponse({
                             functionResponses: [
                                 {
@@ -353,7 +354,7 @@ export class GeminiWebSocketSDK {
                                 {
                                     id: call.id,
                                     name: toolName,
-                                    response: { error: `Error executing tool "${toolName}": ${error}` },
+                                    response: {error: `Error executing tool "${toolName}": ${error}`},
                                 }
                             ]
                         })
@@ -390,7 +391,8 @@ export class GeminiWebSocketSDK {
         this.isSetupComplete = false;
         try {
             this.session?.close();
-        } catch { }
+        } catch {
+        }
         this.session = null;
         this.isConnected = false;
         this.accumulatedPcmData = [];

@@ -1,5 +1,3 @@
-import Image from "next/image";
-import { Sparkles } from "lucide-react";
 import PhoneMockup from "../_layout/phone-mockup";
 
 export function PersonalizedSection() {
