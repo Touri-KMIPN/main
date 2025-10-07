@@ -1,6 +1,6 @@
 import React from 'react';
 import { AdvancedMarker } from '@vis.gl/react-google-maps';
-import { LocateFixed, MapPin } from 'lucide-react';
+import { CircleUserRoundIcon } from 'lucide-react';
 
 interface UserLocationMarkerProps {
   latitude: number;
@@ -13,7 +13,7 @@ const UserLocationMarker: React.FC<UserLocationMarkerProps> = ({ latitude, longi
       position={{ lat: latitude, lng: longitude }}
     >
       <div className="p-2 rounded-full bg-blue-500 text-white shadow-lg">
-        <LocateFixed className="size-4" />
+        <CircleUserRoundIcon className="size-4" />
       </div>
     </AdvancedMarker>
   );
