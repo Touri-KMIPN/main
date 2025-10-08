@@ -160,9 +160,23 @@ export class TouriLiveSDK {
 
     // Send media chunk (audio/image). Audio must be PCM16, 16kHz mono, base64-encoded.
     sendMediaChunk(b64Data: string, mimeType: string) {
-        if (!this.isConnected || !this.session || !this.isSetupComplete) return;
+        if (!this.isConnected || !this.session || !this.isSetupComplete) {
+            console.warn("[SDK] Cannot send media chunk - not connected:", {
+                isConnected: this.isConnected,
+                hasSession: !!this.session,
+                isSetupComplete: this.isSetupComplete
+            });
+            return;
+        }
 
         try {
+            console.log("[SDK] Sending media chunk:", {
+                mimeType,
+                dataLength: b64Data.length,
+                isAudio: mimeType.startsWith("audio/"),
+                isImage: mimeType.startsWith("image/")
+            });
+
             if (mimeType.startsWith("audio/pcm")) {
                 const audioMime = mimeType.includes("rate=")
                     ? mimeType
@@ -176,13 +190,15 @@ export class TouriLiveSDK {
                 return;
             }
 
-            // Fallback: send as generic binary if unsupported type shows up later
+            // Handle images and other media types
             this.session.sendRealtimeInput({
                 media: {
                     data: b64Data,
                     mimeType,
                 }
             });
+            
+            console.log("[SDK] Successfully sent media chunk");
         } catch (error) {
             console.error("[SDK] Error sending media chunk:", error);
         }

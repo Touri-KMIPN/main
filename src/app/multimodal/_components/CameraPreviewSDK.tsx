@@ -306,21 +306,53 @@ export default function CameraPreviewSDK({
   }, [isStreaming, stream, isWebSocketReady, isModelSpeaking]);
 
   const captureAndSendImage = () => {
-    if (!videoRef.current || !videoCanvasRef.current || !geminiRef.current)
+    if (!videoRef.current || !videoCanvasRef.current || !geminiRef.current) {
+      console.warn("[CameraSDK] Missing refs for image capture:", {
+        video: !!videoRef.current,
+        canvas: !!videoCanvasRef.current,
+        gemini: !!geminiRef.current
+      });
       return;
+    }
 
+    const video = videoRef.current;
     const canvas = videoCanvasRef.current;
+    
+    // Check if video is ready
+    if (video.readyState < 2 || video.videoWidth === 0 || video.videoHeight === 0) {
+      console.warn("[CameraSDK] Video not ready for capture:", {
+        readyState: video.readyState,
+        videoWidth: video.videoWidth,
+        videoHeight: video.videoHeight
+      });
+      return;
+    }
+
     const context = canvas.getContext("2d");
-    if (!context) return;
+    if (!context) {
+      console.error("[CameraSDK] Could not get canvas context");
+      return;
+    }
 
-    canvas.width = videoRef.current.videoWidth;
-    canvas.height = videoRef.current.videoHeight;
+    try {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
 
-    context.drawImage(videoRef.current, 0, 0);
+      context.drawImage(video, 0, 0);
 
-    const imageData = canvas.toDataURL("image/jpeg", 0.8);
-    const b64Data = imageData.split(",")[1];
-    geminiRef.current.sendMediaChunk(b64Data, "image/jpeg");
+      const imageData = canvas.toDataURL("image/jpeg", 0.8);
+      const b64Data = imageData.split(",")[1];
+      
+      console.log("[CameraSDK] Capturing and sending image:", {
+        width: canvas.width,
+        height: canvas.height,
+        dataLength: b64Data.length
+      });
+      
+      geminiRef.current.sendMediaChunk(b64Data, "image/jpeg");
+    } catch (error) {
+      console.error("[CameraSDK] Error capturing image:", error);
+    }
   };
 
   return (
@@ -415,7 +447,7 @@ export default function CameraPreviewSDK({
         </div>
       </div>
 
-      {/* <canvas ref={videoCanvasRef} className="hidden" /> */}
+      <canvas ref={videoCanvasRef} className="hidden" />
     </div>
   );
 }
