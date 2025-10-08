@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   title: "Touri - Your Pocket AI Tour Guide",
   description: "Your AI Tour Guide In Your Pocket",
   icons: {
-    icon: "/Touri.webp",
+    icon: "/icon/Touri.webp",
   }
 };
 
