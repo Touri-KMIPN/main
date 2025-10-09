@@ -1,13 +1,19 @@
 "use client";
 import { useState, useCallback } from "react";
 import CameraPreviewSDK from "./_components/CameraPreviewSDK";
-import { ArrowLeft, MapIcon, XIcon } from "lucide-react";
+import { ArrowLeft, MapIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import MapView from "../map/_components/map-view";
 import { SpotsProvider } from "@/providers/SpotsProvider";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 export default function Home() {
   const router = useRouter();
@@ -23,13 +29,31 @@ export default function Home() {
   return (
     <>
       <SpotsProvider>
-        <div className="fixed top-10 left-5 z-50">
+        <div className="fixed inset-x-5 top-10 z-50 flex items-center justify-between">
           <Button
-            className="rounded-full cursor-pointer h-8 w-8"
+            className="rounded-full cursor-pointer h-12 w-12"
             onClick={() => router.back()}
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button
+                variant="outline"
+                className="z-10 h-12 w-12 rounded-full cursor-pointer shadow-lg hover:shadow-xl transition-all"
+              >
+                <MapIcon className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent>
+              <VisuallyHidden>
+                <SheetHeader>
+                  <SheetTitle className="sr-only">Map View</SheetTitle>
+                </SheetHeader>
+              </VisuallyHidden>
+              <MapView />
+            </SheetContent>
+          </Sheet>
         </div>
         <div className="max-h-dvh max-w-dvw overflow-hidden flex flex-col items-center justify-center">
           <div className="flex">
@@ -84,20 +108,6 @@ export default function Home() {
               <MapIcon className="h-5 w-5" />
             </Button>
           )} */}
-
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button
-                variant="outline"
-                className="fixed top-5 right-5 z-10 h-12 w-12 rounded-full cursor-pointer shadow-lg hover:shadow-xl transition-all"
-              >
-                <MapIcon className="h-5 w-5" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent className="">
-              <MapView />
-            </SheetContent>
-          </Sheet>
         </div>
       </SpotsProvider>
     </>
