@@ -6,11 +6,10 @@ import { Spot, PlaceType } from "@/types/spot";
 import { getPlaceIcon } from "@/lib/place-icons";
 import SpotCard from "@/components/spot-card";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card"
 
 // pins
 const PoiMarkers = (props: { pois: Spot[] }) => {
@@ -77,25 +76,21 @@ const PoiMarkers = (props: { pois: Spot[] }) => {
             onClick={handleClick}
             clickable={true}
           >
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger>
+              <HoverCard>
+                <HoverCardTrigger>
                   <div className="flex flex-col items-center gap-1">
                     <div className="p-2 rounded-full border border-border bg-white text-black shadow-lg">
                       <Icon className="size-4" />
                     </div>
-                    <p className="bg-background px-1 rounded-lg text-xs font-medium">
+                    <p className="bg-background px-1 rounded-lg text-xs text-center font-medium max-w-[200px]">
                       {poi.displayName.text.replace(/([A-Z])/g, " $1").trim()}
                     </p>
                   </div>
-                </TooltipTrigger>
-                <TooltipContent className="bg-accent/80 backdrop-blur-sm" side="right">
-                  <div className="w-64">
+                </HoverCardTrigger>
+                <HoverCardContent className="bg-background p-0" side="right">
                     <SpotCard spot={poi} />
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+                </HoverCardContent>
+              </HoverCard>
           </AdvancedMarker>
         );
       })}

@@ -1,4 +1,4 @@
-import {Spot} from "@/types/spot"; // Make sure this path is correct
+import { Spot } from "@/types/spot"; // Make sure this path is correct
 
 // Define the structure of the data chunks from your API
 type StreamChunk =
@@ -22,7 +22,7 @@ export interface ITouriClientChatService {
     onResponseStart: () => void;
     onResponseEnd: () => void;
     onResponseStream: (chunk: string) => void;
-    onSpotsAddition: (spots: Spot[]) => void;
+    onSpotsAddition: (spots: Spot[]) => Promise<void>;
 
     sendMessage(message: string, files?: File[]): Promise<void>;
 }
@@ -33,7 +33,7 @@ export class TouriClientChatService implements ITouriClientChatService {
     onResponseStart: () => void;
     onResponseEnd: () => void;
     onResponseStream: (chunk: string) => void;
-    onSpotsAddition: (spots: Spot[]) => void;
+    onSpotsAddition: (spots: Spot[]) => Promise<void>;
     onSessionCreation: (sessionId: string) => void
 
     constructor(
@@ -42,7 +42,7 @@ export class TouriClientChatService implements ITouriClientChatService {
             onResponseStart?: () => void;
             onResponseEnd?: () => void;
             onResponseStream?: (chunk: string) => void;
-            onSpotsAddition?: (spots: Spot[]) => void;
+            onSpotsAddition?: (spots: Spot[]) => Promise<void>;
             onSessionCreation?: (sessionId: string) => void;
         } = {}
     ) {
@@ -53,7 +53,7 @@ export class TouriClientChatService implements ITouriClientChatService {
         });
         this.onResponseStream = callbacks.onResponseStream ?? (() => {
         });
-        this.onSpotsAddition = callbacks.onSpotsAddition ?? (() => {
+        this.onSpotsAddition = callbacks.onSpotsAddition ?? (async () => {
         });
         this.onSessionCreation = callbacks.onSessionCreation ?? (() => {
         });
@@ -92,7 +92,7 @@ export class TouriClientChatService implements ITouriClientChatService {
                     });
                 },
                 () => resolve(null), // On error, return null
-                {timeout: 5000} // Optional: set a timeout for geolocation
+                { timeout: 5000 } // Optional: set a timeout for geolocation
             );
         });
     }
@@ -105,7 +105,7 @@ export class TouriClientChatService implements ITouriClientChatService {
 
         this.isGenerating = true;
         this.onResponseStart();
-
+    
         try {
             // Convert files to the format expected by the backend
             const formattedFiles = await Promise.all(
@@ -120,7 +120,7 @@ export class TouriClientChatService implements ITouriClientChatService {
                     'Content-Type': 'application/json',
                     // Add other headers like geolocation if needed
                     'sessionId': this.sessionId || '',
-                    ...(geolocation ? {'geolat': geolocation.lat, 'geolng': geolocation.lng} : {})
+                    ...(geolocation ? { 'geolat': geolocation.lat, 'geolng': geolocation.lng } : {})
 
                 },
                 body: JSON.stringify({
@@ -138,10 +138,10 @@ export class TouriClientChatService implements ITouriClientChatService {
             let buffer = '';
 
             while (true) {
-                const {done, value} = await reader.read();
+                const { done, value } = await reader.read();
                 if (done) break;
 
-                buffer += decoder.decode(value, {stream: true});
+                buffer += decoder.decode(value, { stream: true });
                 const messages = buffer.split('\n\n');
                 buffer = messages.pop() || '';
 
@@ -154,14 +154,15 @@ export class TouriClientChatService implements ITouriClientChatService {
                         if ('text' in data) {
                             this.onResponseStream(data.text);
                         }
-                        if ('spots' in data) {
-                            this.onSpotsAddition(data.spots);
-                        }
                         if ('sessionId' in data) {
                             this.sessionId = data.sessionId;
                             console.log("New session ID received:", data.sessionId);
                             this.onSessionCreation(data.sessionId)
                         }
+                        if ('spots' in data) {
+                             console.log("Spots received:", data.spots);
+                             await this.onSpotsAddition(data.spots);
+                         } 
                         if ('finished' in data && data.finished) {
                             // The stream is done, the finally block will handle the rest
                             return;

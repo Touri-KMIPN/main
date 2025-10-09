@@ -4,7 +4,7 @@ import { SessionDocument, sessionsCollection } from "@/database/collections/sess
 interface ISessionService {
     getSessions(): Promise<SessionDocument[]>;
 
-    createSession(summary: string, userId: string): Promise<SessionDocument>;
+    createSession(sessionId: string, summary: string, userId: string): Promise<SessionDocument>;
 
     getSessionById(sessionId: string): Promise<SessionDocument | null>;
 
@@ -30,9 +30,10 @@ export class SessionService implements ISessionService {
         return sessionsCollection.findOne({ id: sessionId });
     }
 
-    async createSession(summary: string, userId: string): Promise<SessionDocument> {
+
+    async createSession(sessionId: string, summary: string, userId: string): Promise<SessionDocument> {
         const newSession: SessionDocument = {
-            id: crypto.randomUUID(),
+            id: sessionId,
             userId,
             summary,
             createdAt: new Date(),

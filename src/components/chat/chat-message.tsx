@@ -20,8 +20,6 @@ export default function ChatMessage({
     return files?.map((file) => base64ToFile(file.content, file.mimeType));
   }, [files]);
 
-  console.log(role)
-
   return (
     <div className="m-4">
       <div

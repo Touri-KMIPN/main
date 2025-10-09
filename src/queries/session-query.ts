@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query"
 
 export const useSessionMessagesQuery = (
     sessionId?: string,
+    isNewSession?: boolean
 ) => {
     return useQuery({
         queryKey: ['messages', sessionId],
@@ -17,7 +18,7 @@ export const useSessionMessagesQuery = (
 
             return parsedResponse.messages as ContentDocument[];
         },
-        enabled: !!sessionId, // Only run if sessionId is provided
+        enabled: !!sessionId && !isNewSession, // Only run if sessionId is provided
     });
 }
 
