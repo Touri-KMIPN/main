@@ -5,6 +5,8 @@ import {
   MessageCirclePlusIcon,
   XIcon,
   AlignJustifyIcon,
+  Trash2Icon,
+  Ghost,
 } from "lucide-react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
@@ -24,7 +26,7 @@ export function Sidebar({ isOpen, onToggle, sessions }: SidebarProps) {
 
   return (
     <aside
-      className={`relative flex flex-col z-20 border-r border-border bg-sidebar transition-all duration-300 ${
+      className={`relative flex flex-col z-20 border-r border-border max-h-dvh overflow-hidden bg-sidebar transition-all duration-300 ${
         isOpen ? "w-full md:w-58" : "w-16"
       }`}
     >
@@ -61,9 +63,10 @@ export function Sidebar({ isOpen, onToggle, sessions }: SidebarProps) {
         <Link href={"/chat?new=true"}>
           <Button
             variant={isOpen ? "default" : "ghost"}
-            className={cn("w-full gap-3 cursor-pointer ",
-              isOpen && "justify-center px-2")
-            }
+            className={cn(
+              "w-full gap-3 cursor-pointer ",
+              isOpen && "justify-center px-2"
+            )}
           >
             <MessageCirclePlusIcon className="h-5 w-5 shrink-0" />
             {isOpen && <span className="text-sm">New Chat</span>}
@@ -73,20 +76,36 @@ export function Sidebar({ isOpen, onToggle, sessions }: SidebarProps) {
           <>
             <Separator className={"my-2"} />
             {/* History Item */}
-            <div className="flex flex-col gap-2 overflow-hidden">
+            <div className="max-h-[75dvh] flex flex-col gap-2 overflow-y-auto">
               {sessions.map((item, index) => (
-                <Link key={index} href={`/chat/${item.id}`} className="hover:cursor-pointer">
-                  <Button
-                    variant="ghost"
-                    className={`w-full justify-start gap-3 ${
-                      !isOpen && "justify-center px-2"
-                    } text-muted-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"`}
+                <div
+                  key={index}
+                  className="flex items-center w-full justify-between group"
+                >
+                  <Link
+                    href={`/chat/${item.id}`}
+                    className="hover:cursor-pointer w-full"
                   >
-                    {item.summary.length > 20
-                      ? `${item.summary.substring(0, 20)}...`
-                      : item.summary}
-                  </Button>
-                </Link>
+                    <Button
+                      variant="ghost"
+                      className={`w-full justify-start gap-3 ${
+                        !isOpen && "justify-center px-2"
+                      } text-muted-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"`}
+                    >
+                      {item.summary.length > 20
+                        ? `${item.summary.substring(0, 20)}...`
+                        : item.summary}
+                    </Button>
+                  </Link>
+                  <Link href={`#`}>
+                    <Button
+                      variant={"ghost"}
+                      className="w-6 h-6 group-hover:opacity-100 md:opacity-0 hover:text-destructive cursor-pointer transition-all"
+                    >
+                      <Trash2Icon size={8} />
+                    </Button>
+                  </Link>
+                </div>
               ))}
             </div>
           </>
@@ -94,7 +113,7 @@ export function Sidebar({ isOpen, onToggle, sessions }: SidebarProps) {
       </nav>
 
       {/* Footer */}
-      <div className="border-t border-sidebar-border p-4">
+      <div className="border-t border-sidebar-border absolute max-w-58 bottom-0 bg-primary-foreground p-4">
         {isOpen ? (
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent text-primary-foreground">
