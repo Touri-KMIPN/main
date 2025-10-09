@@ -5,7 +5,7 @@ export const faqData = [
   },
   {
     q: "How does Touri work?",
-    a: "Touri uses advanced algorithms and machine learning to analyze user preferences and provide tailored travel suggestions.",
+    a: "Touri uses advanced algorithms and artificial intelligence to analyze user preferences and provide tailored travel suggestions.",
   },
   {
     q: "Can I use Touri offline?",

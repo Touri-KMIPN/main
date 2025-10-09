@@ -7,7 +7,7 @@ import Link from "next/link";
 export default function Navbar() {
   return (
     <header className="fixed w-full z-50 xl:pt-4">
-      <div className="bg-background/80 backdrop-blur-sm max-w-7xl py-2 px-4 lg:px-8 xl:rounded-full mx-auto flex items-center justify-between border">
+      <div className="bg-background/80 backdrop-blur-sm max-w-7xl py-2 px-4 xl:rounded-full mx-auto flex items-center justify-between border">
         <Link href={"/"} className="flex items-center gap-2 focus:outline-none">
           <div className="flex items-center gap-2">
             <Image
@@ -21,7 +21,7 @@ export default function Navbar() {
           </div>
         </Link>
         <nav className="text-sm hidden lg:block">
-          <ul className="flex items-center gap-8">
+        <ul className="flex items-center gap-8">
             <li>
               <Link className="hover:text-primary/90" href="#how-to-use">How to Use</Link>
             </li>
@@ -33,11 +33,16 @@ export default function Navbar() {
             </li>
           </ul>
         </nav>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center justify-center gap-4">
+          <Link href={"/chat?new=true"}>
+            <Button variant={"secondary"} className="rounded-full cursor-pointer">
+              Get Started!
+            </Button>
+          </Link>
           <ModeToggle />
-          <Button variant={"secondary"} className="lg:hidden">
+          {/* <Button variant={"secondary"} className="lg:hidden">
             <AlignJustifyIcon />
-          </Button>
+          </Button> */}
         </div>
       </div>
     </header>

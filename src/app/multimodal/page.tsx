@@ -1,8 +1,6 @@
-// app/page.tsx
 "use client";
 import { useState, useCallback } from "react";
 import CameraPreviewSDK from "./_components/CameraPreviewSDK";
-import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
