@@ -1,12 +1,17 @@
 "use client";
 import { useState, useCallback } from "react";
 import CameraPreviewSDK from "./_components/CameraPreviewSDK";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, MapIcon, XIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import MapView from "../map/_components/map-view";
+import { SpotsProvider } from "@/providers/SpotsProvider";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 export default function Home() {
   const router = useRouter();
+  const [mapOpen, setMapOpen] = useState(false);
   const [messages, setMessages] = useState<
     { type: "human" | "gemini"; text: string }[]
   >([]);
@@ -17,34 +22,84 @@ export default function Home() {
 
   return (
     <>
-      <div className="fixed top-10 left-5 z-50">
-        <Button
-          className="rounded-full cursor-pointer"
-          onClick={() => router.back()}
-        >
-          <ArrowLeft size={18} />
-        </Button>
-      </div>
-      <div className="max-h-dvh flex flex-col items-center justify-center">
-        <div className="flex">
-          {/* <CameraPreview onTranscription={handleTranscription} /> */}
-          <CameraPreviewSDK onTranscription={handleTranscription} />
-          {/* <div className="w-[640px] bg-white">
-          <ScrollArea className="h-[540px] p-6">
-            <div className="space-y-6">
-              <GeminiMessage text="Hi! I'm Touri. I can see and hear you. Let's chat!" />
-              {messages.map((message, index) => (
-                message.type === 'human' ? (
-                  <HumanMessage key={`msg-${index}`} text={message.text} />
-                ) : (
-                  <GeminiMessage key={`msg-${index}`} text={message.text} />
-                )
-              ))}
-            </div>
-          </ScrollArea>
-        </div> */}
+      <SpotsProvider>
+        <div className="fixed top-10 left-5 z-50">
+          <Button
+            className="rounded-full cursor-pointer h-8 w-8"
+            onClick={() => router.back()}
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
         </div>
-      </div>
+        <div className="max-h-dvh max-w-dvw overflow-hidden flex flex-col items-center justify-center">
+          <div className="flex">
+            {/* <CameraPreview onTranscription={handleTranscription} /> */}
+            <CameraPreviewSDK onTranscription={handleTranscription} />
+            {/* <div className="w-[640px] bg-white">
+            <ScrollArea className="h-[540px] p-6">
+              <div className="space-y-6">
+                <GeminiMessage text="Hi! I'm Touri. I can see and hear you. Let's chat!" />
+                {messages.map((message, index) => (
+                  message.type === 'human' ? (
+                    <HumanMessage key={`msg-${index}`} text={message.text} />
+                  ) : (
+                    <GeminiMessage key={`msg-${index}`} text={message.text} />
+                  )
+                ))}
+              </div>
+            </ScrollArea>
+          </div> */}
+          </div>
+
+          {/* Map Layout - Fullscreen on mobile, 2/4 on desktop when open */}
+          {/* {mapOpen && (
+            <div
+              className={cn(
+                "transition-all duration-300 border-l border-border overflow-hidden",
+                mapOpen ? "fixed inset-0 z-100 h-full bg-background" : "w-0"
+              )}
+            >
+              <div className="h-full w-full relative">
+                <MapView />
+                <Button
+                  onClick={() => setMapOpen(!mapOpen)}
+                  size="icon"
+                  variant="outline"
+                  className="absolute top-10 left-5 z-50 cursor-pointer h-12 w-12 rounded-full shadow-lg hover:shadow-xl transition-all"
+                >
+                  <XIcon className="h-5 w-5" />
+                </Button>
+              </div>
+            </div>
+          )} */}
+
+          {/* Map Toggle Button - Only show when map is closed */}
+          {/* {!mapOpen && (
+            <Button
+              onClick={() => setMapOpen(!mapOpen)}
+              size="icon"
+              variant="outline"
+              className="fixed top-5 right-5 z-10 h-12 w-12 rounded-full cursor-pointer shadow-lg hover:shadow-xl transition-all"
+            >
+              <MapIcon className="h-5 w-5" />
+            </Button>
+          )} */}
+
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button
+                variant="outline"
+                className="fixed top-5 right-5 z-10 h-12 w-12 rounded-full cursor-pointer shadow-lg hover:shadow-xl transition-all"
+              >
+                <MapIcon className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent className="">
+              <MapView />
+            </SheetContent>
+          </Sheet>
+        </div>
+      </SpotsProvider>
     </>
   );
 }
