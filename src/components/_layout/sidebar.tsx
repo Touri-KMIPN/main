@@ -99,7 +99,7 @@ export function Sidebar({ isOpen, onToggle, sessions }: SidebarProps) {
                 >
                   <Link
                     href={`/chat/${item.id}`}
-                    className="hover:cursor-pointer w-full"
+                    className="hover:cursor-pointer w-full overflow-x-hidden"
                   >
                     <Button
                       disabled={isDeleting}
