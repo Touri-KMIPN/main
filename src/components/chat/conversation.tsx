@@ -21,6 +21,7 @@ type ConversationProps = {
 export default function Conversation({ messages, setMessages, chatSessionId, initialMessage }: ConversationProps) {
     const { setSpots } = useSpots()
     const chatServiceRef = useRef<TouriClientChatService | null>(null)
+    const initialMessageSentRef = useRef(false) // Track if initial message has been sent
     const [loading, setLoading] = useState(false)
     const [sessionId, setSessionId] = useState<string | null>(chatSessionId)
     const router = useRouter()
@@ -66,7 +67,8 @@ export default function Conversation({ messages, setMessages, chatSessionId, ini
                                 { role: 'assistant', text: last.text + chunk },
                             ];
                         } else {
-                            // create new assistant message if none exists
+                            // This should not happen since onResponseStart creates an empty message
+                            console.warn('No assistant message found when streaming, creating new one');
                             return [...prev, { role: 'assistant', text: chunk }];
                         }
                     });
@@ -79,7 +81,13 @@ export default function Conversation({ messages, setMessages, chatSessionId, ini
                     /* response started */
                     setLoading(true)
                     setMessages((prev) => {
-                        const filtered = prev.filter(msg => !(msg.role === 'assistant' && msg.text === ''));
+                        // Remove any existing empty assistant messages to prevent duplicates
+                        const filtered = prev.filter(msg => !(msg.role === 'assistant' && (msg.text === '' || !msg.text)));
+                        // Only add new empty assistant message if the last message isn't already an empty assistant message
+                        const last = filtered[filtered.length - 1];
+                        if (last && last.role === 'assistant' && last.text === '') {
+                            return filtered; // Don't add another empty message
+                        }
                         return [...filtered, { role: 'assistant', text: '' }];
                     });
                 },
@@ -129,7 +137,11 @@ export default function Conversation({ messages, setMessages, chatSessionId, ini
 
     useEffect(() => {
         // If there's an initial message (e.g., from a new session), send it
-        if (initialMessage && chatServiceRef.current) {
+        // Only send once using ref to prevent duplicates
+        if (initialMessage && chatServiceRef.current && !initialMessageSentRef.current) {
+            console.log("Sending initial message:", initialMessage.text);
+            initialMessageSentRef.current = true; // Mark as sent
+            
             const fileParsedFromBase64 = initialMessage.files?.map(file => base64ToFile(
                 file.content,
                 file.mimeType

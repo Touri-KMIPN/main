@@ -286,7 +286,7 @@ export class TouriChatService {
             this.session = await this.sessionService.createSession(
                 this.sessionId,
                 summary.text ?? "New session",
-                this.context.authenticatedUserId!, // TODO: THIS ALWAYS DEFINED MAKE THIS SO
+                this.context.authenticatedUserId!, //
             )
         }
 
@@ -327,7 +327,7 @@ export class TouriChatService {
             });
 
             const response = await this.ai.models.generateContentStream({
-                model: 'gemini-2.5-flash-preview-09-2025',
+                model: 'gemini-2.5-flash',
                 contents: this.history,
                 config: this.createConfig(),
             });

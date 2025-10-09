@@ -28,7 +28,7 @@ export default function NewConversation() {
         } as Message));
 
         // Redirect to conversation page with new session ID
-        router.push(`/chat/${newSessionId}?new=true`);
+        router.push(`/chat/${newSessionId}`);
     }
 
     return (

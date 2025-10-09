@@ -7,7 +7,6 @@ import { useSessionMessagesQuery } from '@/queries/session-query';
 import { Message } from '@/types/chat';
 import { Spot } from '@/types/spot';
 import { Loader } from 'lucide-react';
-import { useSearchParams } from 'next/navigation';
 import React, { use, useEffect, useMemo } from 'react'
 
 async function fetchSpots(sessionId: string, onFound: (spots: Spot[]) => void) {
@@ -18,19 +17,32 @@ async function fetchSpots(sessionId: string, onFound: (spots: Spot[]) => void) {
 export default function Page({ params }: { params: Promise<{ sessionId: string }> }) {
   const [messages, setMessages] = React.useState<Message[]>([]);
   const { spots, setSpots } = useSpots()
-  const searchParams = useSearchParams();
 
   const { sessionId } = use(params)
 
-  // Check if the session is new
+  // Get Initial Message from the first message if it's a new session
+  const initialMessage = useMemo(() => {
+    const rawMessage = localStorage.getItem(sessionId)
+    // Clear it from localStorage after retrieving
+    if (rawMessage) {
+      localStorage.removeItem(sessionId)
+      return JSON.parse(rawMessage) as Message;
+    }
+    
+    return null;
+  }, []) 
+
   const isNew = useMemo(() => {
-    return searchParams.get('new') === 'true';
-  }, [searchParams]);
+    if (initialMessage) {
+      return true;
+    }
+    return false;
+  }, [initialMessage]);
 
   // Fetch messages for the session
   const { data: sessionMessages, isLoading: isLoadingMessages } = useSessionMessagesQuery(
     sessionId ?? undefined, // 
-    isNew // isNewSession
+    isNew === true // isNewSession
   );
 
   // When sessionMessages change, update the messages state
@@ -43,13 +55,6 @@ export default function Page({ params }: { params: Promise<{ sessionId: string }
     }
   }, [sessionMessages])
 
-  // Get Initial Message from the first message if it's a new session
-  const initialMessage = useMemo(() => {
-    if (isNew) {
-      const rawMessage = localStorage.getItem(sessionId ?? "")
-      return rawMessage ? JSON.parse(rawMessage) as Message : null;
-    }
-  }, [])
 
   // On component mount, fetch spots from IndexedDB for the session
   useEffect(() => {
