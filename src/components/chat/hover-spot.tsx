@@ -7,9 +7,6 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
-import { Map } from "lucide-react";
-import { Button } from "../ui/button";
-import Link from "next/link";
 import SpotCard from "../spot-card";
 
 type HoverSpotProps = {
@@ -48,7 +45,7 @@ export function HoverSpot({ label, spot }: HoverSpotProps) {
           {label}
         </span>
       </HoverCardTrigger>
-      <HoverCardContent className="bg-accent/80 backdrop-blur-sm" side="right">
+      <HoverCardContent className="p-0" side="right">
         <SpotCard spot={spot} />
       </HoverCardContent>
     </HoverCard>

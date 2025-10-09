@@ -6,7 +6,6 @@ import {
   XIcon,
   AlignJustifyIcon,
   Trash2Icon,
-  Ghost,
 } from "lucide-react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
@@ -14,6 +13,9 @@ import { Separator } from "@/components/ui/separator";
 import { SessionDocument } from "@/database/collections/sessions";
 import Link from "next/link";
 import { ModeToggle } from "../theme-toggle";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { deleteSessionMutationOpts } from "@/queries/session-query";
+import { toast } from "sonner";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -24,11 +26,24 @@ interface SidebarProps {
 export function Sidebar({ isOpen, onToggle, sessions }: SidebarProps) {
   const { user } = useKindeAuth();
 
+  const queryClient = useQueryClient()
+  const { mutate: deleteSession, isPending: isDeleting } = useMutation({
+    ...deleteSessionMutationOpts,
+    onSuccess() {
+      queryClient.invalidateQueries({
+        queryKey: ['sessions']
+      })
+      toast.success("Session deleted");
+    },
+    onError() {
+      toast.error("Failed to delete session");
+    }
+  })
+
   return (
     <aside
-      className={`relative flex flex-col z-20 border-r border-border max-h-dvh overflow-hidden bg-sidebar transition-all duration-300 ${
-        isOpen ? "w-full md:w-58" : "w-16"
-      }`}
+      className={`relative flex flex-col z-20 border-r border-border max-h-dvh overflow-hidden bg-sidebar transition-all duration-300 ${isOpen ? "w-full md:w-58" : "w-16"
+        }`}
     >
       {/* Header */}
       <div className="flex h-16 items-center justify-between px-4">
@@ -87,10 +102,10 @@ export function Sidebar({ isOpen, onToggle, sessions }: SidebarProps) {
                     className="hover:cursor-pointer w-full overflow-x-hidden"
                   >
                     <Button
+                      disabled={isDeleting}
                       variant="ghost"
-                      className={`w-full justify-start gap-3 ${
-                        !isOpen && "justify-center px-2"
-                      } text-muted-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"`}
+                      className={`w-full justify-start gap-3 ${!isOpen && "justify-center px-2"
+                        } text-muted-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"`}
                     >
                       {item.summary.length > 20
                         ? `${item.summary.substring(0, 20)}...`
@@ -100,7 +115,11 @@ export function Sidebar({ isOpen, onToggle, sessions }: SidebarProps) {
                   <Link href={`#`}>
                     <Button
                       variant={"ghost"}
+                      disabled={isDeleting}
                       className="w-6 h-6 group-hover:opacity-100 md:opacity-0 hover:text-destructive cursor-pointer transition-all"
+                      onClick={() => {
+                        deleteSession(item.id);
+                      }}
                     >
                       <Trash2Icon size={8} />
                     </Button>

@@ -17,7 +17,7 @@ export const GenerateRequestBodySchema = z.object({
 export const GenerateRequestHeaderSchema = z.object({
     geolat: z.string().optional(),
     geolng: z.string().optional(),
-    sessionid: z.string().optional(),
+    sessionid: z.string().min(1, "sessionid header is required"),
 })
 
 export type GenerateRequestBody = z.infer<typeof GenerateRequestBodySchema>;

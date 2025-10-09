@@ -1,4 +1,4 @@
-import { Content, FunctionCall, GenerateContentConfig, GenerateContentResponse, GoogleGenAI, Part } from "@google/genai";
+import { Content, FunctionCall, GenerateContentConfig, GenerateContentResponse, GoogleGenAI, Part, Type } from "@google/genai";
 import { Spot } from "@/types/spot";
 import { CallableTool_2, CallableToolRequestContext } from "@/types/tool";
 import { zodToFunctionDeclaration } from "@/lib/function";
@@ -13,6 +13,7 @@ const SYSTEM_PROMPT = `
                 You are a helpful AI assistant for a tourism app called Touri.
                 Remember all previous conversation context and user details throughout our conversation.
                 Please response expressively and enthusiastically.
+
 
                 Here are the tools you have access to:
 
@@ -39,6 +40,7 @@ const SYSTEM_PROMPT = `
                    - Need to identify nearby landmarks within 50 meters
 
                 **Important Guidelines:**
+                - DON'T USE FUNCTION CALL AND TOOL CALL AT THE SAME TIME
                 - Always use tools directly without asking for location first - they handle geolocation automatically
                 - When user asks for recommendations, immediately use the appropriate search tool
                 - search_place can be used for both broad and specific queries
@@ -61,7 +63,8 @@ const SYSTEM_PROMPT = `
 
 export class TouriChatService {
     isGenerating: boolean = false;
-    sessionId: string | null = null;
+    sessionId: string;
+    isInitialize: boolean = false;
     session: SessionDocument | null = null
     ai: GoogleGenAI;
     history: ContentDocument[];
@@ -81,6 +84,7 @@ export class TouriChatService {
 
     constructor({
         sessionId,
+        isInitialize,
         user,
         onGenerationStart,
         onResponseStart,
@@ -94,7 +98,8 @@ export class TouriChatService {
         onSpotAddition,
         onSessionCreation
     }: {
-        sessionId: string | null,
+        sessionId: string,
+        isInitialize?: boolean,
         user: KindeUser<Record<string, any>>,
         tools: CallableTool_2[],
         onSpotAddition: (spots: Spot[]) => void,
@@ -216,13 +221,52 @@ export class TouriChatService {
             tools: [
                 {
                     functionDeclarations:
-                        Array.from(this.tools).map(([_, tool]) => zodToFunctionDeclaration({
-                            name: tool.name,
-                            description: tool.description,
-                            schema: tool.schema,
-                        }))
+                        [
+                            {
+                                name: "internet_search_tools",
+                                description: "Tools that helps with searching in the internet",
+                                parameters: {
+                                    type: Type.OBJECT,
+                                    properties: {
+                                        query: {
+                                            type: Type.STRING,
+                                            description: "The search query to gather info from the internet.",
+                                        }
+                                    }
+                                }
+                            },
+                            ...Array.from(this.tools).map(([_, tool]) => zodToFunctionDeclaration({
+                                name: tool.name,
+                                description: tool.description,
+                                schema: tool.schema,
+                            }))
+
+                        ]
                 }
-            ]
+            ],
+        }
+    }
+
+    private async searchInternet(args: Record<string, unknown>) {
+        if ("query" in args) {
+            const query = args["query"] as string;
+
+            return await this.ai.models.generateContent({
+                model: 'gemini-2.5-flash',
+                contents: {
+                    text: query
+                },
+                config: {
+                    systemInstruction: `You are an AI assistant that helps users by searching the internet for relevant information.
+                    When given a search query, you should provide a concise and informative summary of the most relevant information found online.
+                    Ensure that the information is accurate and up-to-date.`,
+                    tools: [
+                        { googleSearch: {} }
+                    ]
+                },
+            });
+        } else {
+            return null
         }
     }
 
@@ -231,26 +275,19 @@ export class TouriChatService {
      * @param initialMessage Optional initial message to kickstart the session (used to generate summary)
      */
     private async initializeSession(initialMessage?: string) {
-        if (this.sessionId) {
-            this.session = await this.sessionService.getSessionById(this.sessionId);
+
+        const session = await this.sessionService.getSessionById(this.sessionId);
+        if (session) {
+            this.session = session;
         } else {
-            // New session
-            const summary = await this.createSessionSummary(initialMessage ?? "New chat session");
+            // Create new session
+            const summary = await this.createSessionSummary(initialMessage || "New session");
 
-            const newSession = await this.sessionService
-                .createSession(
-                    summary.text ?? "New chat session",
-                    this.context.authenticatedUserId!
-                );
-            this.sessionId = newSession.id;
-            this.history = [];
-            this.onHistoryChange(this.history);
-            this.onSessionCreation(newSession)
-            this.session = newSession;
-        }
-
-        if (!this.session) {
-            throw new Error("Session not found");
+            this.session = await this.sessionService.createSession(
+                this.sessionId,
+                summary.text ?? "New session",
+                this.context.authenticatedUserId!, //
+            )
         }
 
         const messages = await this.sessionService.getSessionMessages(this.session.id);
@@ -376,6 +413,22 @@ export class TouriChatService {
 
         for (const call of calls) {
             const toolName = call.name ?? ""
+
+            if (toolName === "internet_search_tools") {
+                const searchResult = await this.searchInternet(call.args ?? {});
+                console.log("Search Result", searchResult?.text)
+                toolResponses.push({
+                    functionResponse: {
+                        name: toolName,
+                        id: call.id,
+                        response: {
+                            result: searchResult?.text ?? "No results found"
+                        }
+                    }
+                });
+                continue;
+            }
+
             const tool = this.tools.get(toolName);
 
             if (!tool) {

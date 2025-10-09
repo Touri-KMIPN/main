@@ -1,9 +1,10 @@
 import { ContentDocument } from "@/database/collections/contents";
 import { SessionDocument } from "@/database/collections/sessions";
-import { useQuery } from "@tanstack/react-query"
+import { mutationOptions, MutationOptions, useMutation, useQuery } from "@tanstack/react-query"
 
 export const useSessionMessagesQuery = (
     sessionId?: string,
+    enabled?: boolean
 ) => {
     return useQuery({
         queryKey: ['messages', sessionId],
@@ -17,7 +18,7 @@ export const useSessionMessagesQuery = (
 
             return parsedResponse.messages as ContentDocument[];
         },
-        enabled: !!sessionId, // Only run if sessionId is provided
+        enabled: !!sessionId && !enabled, // Only run if sessionId is provided
     });
 }
 
@@ -36,3 +37,17 @@ export const useSessionsQuery = () => {
     });
 }
 
+
+export const deleteSessionMutationOpts = mutationOptions({
+    mutationFn: async (sessionId: string) => {
+            const response = await fetch(`/api/ai/session/${sessionId}`, {
+                method: 'DELETE',
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to delete session: ' + response.statusText);
+            }
+
+            return await response.json()
+        },  
+})

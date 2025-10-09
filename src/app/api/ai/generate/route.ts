@@ -26,6 +26,7 @@ export async function POST(request: NextRequest) {
   const headers = GenerateRequestHeaderSchema.safeParse(
     Object.fromEntries(request.headers)
   );
+
   if (!headers.success) {
     return new Response(
       JSON.stringify({ error: "Invalid headers", details: headers.error }),

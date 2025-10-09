@@ -1,7 +1,6 @@
 "use client"
 import { AuthProvider } from '@/providers/AuthProvider'
 import AuthSplashProvider from '@/providers/AuthSplashProvider'
-import QueryProvider from '@/providers/QueryProvider'
 import { SpotsProvider } from '@/providers/SpotsProvider'
 import React, { useState } from 'react'
 import MapView from '../map/_components/map-view'
@@ -10,6 +9,7 @@ import { MapIcon, XIcon } from 'lucide-react'
 import { useSessionsQuery } from '@/queries/session-query'
 import { Sidebar } from '@/components/_layout/sidebar'
 import { cn } from '@/lib/utils'
+import { Toaster } from '@/components/ui/sonner'
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
     const [mapOpen, setMapOpen] = useState(false);
@@ -17,6 +17,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const { data: sessions } = useSessionsQuery();
     return (
         <>
+            <Toaster />
             <SpotsProvider>
                 <AuthProvider>
                     <AuthSplashProvider>

@@ -2,7 +2,7 @@ import { Spot } from "@/types/spot";
 import Link from "next/link";
 import React from "react";
 import { Button } from "./ui/button";
-import { MapIcon } from "lucide-react";
+import { MapIcon, MapPinIcon } from "lucide-react";
 
 export default function SpotCard({ spot }: { spot?: Spot }) {
   const thumbnailUri = React.useMemo(() => {
@@ -63,8 +63,8 @@ export default function SpotCard({ spot }: { spot?: Spot }) {
             {spot.googleMapsUri && (
               <Link href={spot.googleMapsUri}>
                 <Button size="sm" className="mt-3 w-full">
-                  <MapIcon />
-                  Open in Maps
+                  <MapPinIcon />
+                  Open in Google Maps
                 </Button>
               </Link>
             )}
