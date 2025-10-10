@@ -10,7 +10,7 @@ const $dexie = new Dexie("TouriSpotDB") as Dexie & {
 }
 
 $dexie.version(1).stores({
-    spots: '++id'
+    spots: 'id, sessionId'
 })
 
 export type {PersistedSpot}
