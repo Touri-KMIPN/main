@@ -13,7 +13,7 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover"
 
-import { CloudUploadIcon, EyeIcon, Loader2, PaperclipIcon, SendIcon } from 'lucide-react'
+import { CloudUploadIcon, EyeIcon, Loader2, PaperclipIcon, SendHorizonalIcon } from 'lucide-react'
 import Link from 'next/link'
 import FilePreview from "@/components/chat/file-preview";
 import { cn } from "@/lib/utils";
@@ -115,10 +115,9 @@ export default function PromptInput({ onSend, loading, className }: PromptInput)
                             size="sm"
                             className='h-8 rounded-full'
                             onClick={handleSend}>
-                            Send
                             {loading
                                 ? <Loader2 className='animate-spin' />
-                                : <SendIcon />
+                                : <SendHorizonalIcon />
                             }
                         </Button>
                     </TooltipProvider>

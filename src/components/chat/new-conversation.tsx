@@ -35,7 +35,7 @@ export default function NewConversation() {
         <div className='flex flex-col gap-8 items-center justify-center h-screen w-full p-4'>
             <h1 className="text-3xl text-center px-4">
                 Hi! I'm{" "}
-                <span className="font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
+                <span className="font-bold bg-primary bg-clip-text text-transparent">
                     Touri
                 </span>
                 , your travel assistant. <br /> How can I help you today?
