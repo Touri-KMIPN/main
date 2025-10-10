@@ -14,6 +14,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import CameraPreviewNeo from "./_components/CameraPreviewNeo";
 
 export default function Home() {
   const router = useRouter();
@@ -57,57 +58,8 @@ export default function Home() {
         </div>
         <div className="max-h-dvh max-w-dvw overflow-hidden flex flex-col items-center justify-center">
           <div className="flex">
-            {/* <CameraPreview onTranscription={handleTranscription} /> */}
-            <CameraPreviewSDK onTranscription={handleTranscription} />
-            {/* <div className="w-[640px] bg-white">
-            <ScrollArea className="h-[540px] p-6">
-              <div className="space-y-6">
-                <GeminiMessage text="Hi! I'm Touri. I can see and hear you. Let's chat!" />
-                {messages.map((message, index) => (
-                  message.type === 'human' ? (
-                    <HumanMessage key={`msg-${index}`} text={message.text} />
-                  ) : (
-                    <GeminiMessage key={`msg-${index}`} text={message.text} />
-                  )
-                ))}
-              </div>
-            </ScrollArea>
-          </div> */}
+            <CameraPreviewNeo onTranscription={handleTranscription} />
           </div>
-
-          {/* Map Layout - Fullscreen on mobile, 2/4 on desktop when open */}
-          {/* {mapOpen && (
-            <div
-              className={cn(
-                "transition-all duration-300 border-l border-border overflow-hidden",
-                mapOpen ? "fixed inset-0 z-100 h-full bg-background" : "w-0"
-              )}
-            >
-              <div className="h-full w-full relative">
-                <MapView />
-                <Button
-                  onClick={() => setMapOpen(!mapOpen)}
-                  size="icon"
-                  variant="outline"
-                  className="absolute top-10 left-5 z-50 cursor-pointer h-12 w-12 rounded-full shadow-lg hover:shadow-xl transition-all"
-                >
-                  <XIcon className="h-5 w-5" />
-                </Button>
-              </div>
-            </div>
-          )} */}
-
-          {/* Map Toggle Button - Only show when map is closed */}
-          {/* {!mapOpen && (
-            <Button
-              onClick={() => setMapOpen(!mapOpen)}
-              size="icon"
-              variant="outline"
-              className="fixed top-5 right-5 z-10 h-12 w-12 rounded-full cursor-pointer shadow-lg hover:shadow-xl transition-all"
-            >
-              <MapIcon className="h-5 w-5" />
-            </Button>
-          )} */}
         </div>
       </SpotsProvider>
     </>

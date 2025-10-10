@@ -5,9 +5,11 @@ import {
     Session,
     GoogleGenAI,
     LiveServerMessage,
-    FunctionCall
+    FunctionCall,
+    VertexAISearch
 } from "@google/genai";
 import {CallableTool_2} from "@/types/tool";
+import {Spot} from "@/types/spot";
 import {GetUserLocationTool, ReverseGeocodingTool, SearchPlaceTools} from "@/tools/MapTools";
 
 const MODEL = "gemini-live-2.5-flash-preview";
@@ -74,7 +76,9 @@ const CONFIG = {
         triggerTokens: "25600",
         slidingWindow: {targetTokens: "12800"},
     },
-    systemInstruction: SYSTEM_PROMPT
+    systemInstruction: SYSTEM_PROMPT,
+    tools: [
+    ]
 } satisfies LiveConnectConfig;
 
 export class TouriLiveSDK {
@@ -94,23 +98,28 @@ export class TouriLiveSDK {
     isPlayingResponse: boolean = false;
     onPlayingStateChange: ((isPlaying: boolean) => void) | null = null;
     onAudioLevelChange: ((level: number) => void) | null = null;
+    onSpotsAddition: ((spots: Spot[]) => void) | null = null;
     accumulatedPcmData: string[] = [];
 
+    // TODO: Class Level RAG Implementation
     constructor(
         onMessage: (text: string) => void,
         onSetupComplete: () => void,
         onPlayingStateChange: (isPlaying: boolean) => void,
         onAudioLevelChange: (level: number) => void,
+        onSpotsAddition: (spots: Spot[]) => void,
         tools: CallableTool_2[]
     ) {
         this.ai = new GoogleGenAI({
             // NOTE: For production use Ephemeral tokens; this mirrors existing client-side usage
             apiKey: process.env.NEXT_PUBLIC_GEMINI_API_KEY || "",
+            
         });
         this.onMessageCallback = onMessage;
         this.onSetupCompleteCallback = onSetupComplete;
         this.onPlayingStateChange = onPlayingStateChange;
         this.onAudioLevelChange = onAudioLevelChange;
+        this.onSpotsAddition = onSpotsAddition;
         // Create AudioContext for playback (24kHz output)
         this.audioContext = new AudioContext({sampleRate: 24000});
 
@@ -307,20 +316,6 @@ export class TouriLiveSDK {
                         }
                     }
                 }
-
-                // When the turn completes, transcribe accumulated audio
-                // if (serverContent.turnComplete === true && this.accumulatedPcmData.length > 0) {
-                //     try {
-                //         const fullPcmData = this.accumulatedPcmData.join("");
-                //         const wavData = await pcmToWav(fullPcmData, 24000);
-                //         const transcription = await this.transcriptionService.transcribeAudio(wavData, "audio/wav");
-                //         this.onTranscriptionCallback?.(transcription);
-                //     } catch (err) {
-                //         console.error("[SDK] Transcription error:", err);
-                //     } finally {
-                //         this.accumulatedPcmData = [];
-                //     }
-                // }
             }
 
             // Some SDK live messages may include audio data directly on `data` as base64 PCM16 (24kHz).
@@ -353,6 +348,12 @@ export class TouriLiveSDK {
                     try {
                         const args = (call.args ?? {}) as FunctionCall["args"];
                         const result = await tool.liveExecute(args);
+                        
+                        // Check if the result contains spots and notify the callback
+                        if (result.spots && Array.isArray(result.spots) && this.onSpotsAddition) {
+                            this.onSpotsAddition(result.spots as Spot[]);
+                        }
+                        
                         this.session?.sendToolResponse({
                             functionResponses: [
                                 {
@@ -375,27 +376,6 @@ export class TouriLiveSDK {
                             ]
                         })
                     }
-                    // if (functionCall.name === "get_current_time") {
-                    //     const now = new Date();
-                    //     const currentTime = now.toTimeString();
-                    //     try {
-                    //         // Best-effort: mirror WS tool response payload via live session
-                    //         this.session?.sendToolResponse?.({
-                    //             functionResponses: [
-                    //                 {
-                    //                     name: "get_current_time",
-                    //                     response: { time: currentTime },
-                    //                     id: functionCall.id,
-                    //                 },
-                    //             ],
-                    //         });
-
-                    //         // TODO: Handle response
-                    //     } catch (e) {
-                    //         // If direct send is unsupported, ignore silently
-                    //         console.warn("[SDK] Tool response send not supported in this SDK version");
-                    //     }
-                    // }
                 }
             }
         } catch (error) {
