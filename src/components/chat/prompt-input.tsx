@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useRef, useEffect } from 'react'
 
 import { Button } from '../ui/button'
 import {
@@ -18,6 +18,27 @@ import Link from 'next/link'
 import FilePreview from "@/components/chat/file-preview";
 import { cn } from "@/lib/utils";
 
+// Custom hook for auto-resizing textarea
+const useAutoResize = () => {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const adjustTextareaHeight = () => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      // Reset height to auto to calculate the scrollHeight correctly
+      textarea.style.height = 'auto';
+      // Set the height to the scrollHeight to fit content
+      textarea.style.height = `${Math.min(textarea.scrollHeight, 200)}px`;
+    }
+  };
+
+  useEffect(() => {
+    adjustTextareaHeight();
+  }, []);
+
+  return { textareaRef, adjustTextareaHeight };
+};
+
 type PromptInput = {
     onSend: (message: string, files: File[]) => void
     loading: boolean,
@@ -27,6 +48,7 @@ type PromptInput = {
 export default function PromptInput({ onSend, loading, className }: PromptInput) {
     const [input, setInput] = React.useState("")
     const [files, setFiles] = React.useState<File[]>([])
+    const { textareaRef, adjustTextareaHeight } = useAutoResize()
 
     const addFile = (file: File) => {
         setFiles((prev) => [...prev, file])
@@ -41,6 +63,20 @@ export default function PromptInput({ onSend, loading, className }: PromptInput)
         onSend(input, files)
         setFiles([])
         setInput('')
+        // Reset textarea height after sending
+        adjustTextareaHeight();
+    }
+
+    const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        setInput(e.target.value);
+        adjustTextareaHeight();
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (e.key === 'Enter' && !e.shiftKey && !loading) {
+            e.preventDefault()
+            handleSend()
+        }
     }
 
     return (
@@ -56,20 +92,18 @@ export default function PromptInput({ onSend, loading, className }: PromptInput)
                     </div>
                 ))}
             </div>
-            <textarea
-                autoFocus
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey && !loading) {
-                        e.preventDefault()
-                        handleSend()
-                    }
-                }}
-                placeholder='Type your message...'
-                className='p-2 flex-1 min-h-12 border-none focus:ring-0 focus:outline-none resize-none'
-                rows={1}
-            />
+            <div className="relative flex-1 min-h-[48px]"> {/* Added container with min-height to maintain space */}
+              <textarea
+                  ref={textareaRef}
+                  autoFocus
+                  value={input}
+                  onChange={handleChange}
+                  onKeyDown={handleKeyDown}
+                  placeholder='Type your message...'
+                  className='w-full p-2 max-h-48 border-none focus:ring-0 focus:outline-none resize-none'
+                  style={{ height: 'auto' }}
+              />
+            </div>
             <div className='flex justify-between gap-2'>
                 <Popover>
                     <TooltipProvider>
