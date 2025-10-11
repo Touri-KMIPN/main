@@ -29,6 +29,9 @@ COPY . .
 
 # ENV NEXT_TELEMETRY_DISABLED 1
 
+# Set mock environment variables for build
+ENV KINDE_ISSUER_URL https://yourapp.kinde.com
+
 RUN \
     if [ -f yarn.lock ]; then yarn build; \
     elif [ -f package-lock.json ]; then npm run build; \
