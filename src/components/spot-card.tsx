@@ -61,7 +61,7 @@ export default function SpotCard({ spot }: { spot?: Spot }) {
               </div>
             )}
             {spot.googleMapsUri && (
-              <Link href={spot.googleMapsUri}>
+              <Link href={spot.googleMapsUri} target="_blank">
                 <Button size="sm" className="mt-3 w-full">
                   <MapPinIcon />
                   Open in Google Maps

@@ -10,6 +10,7 @@ import { base64ToFile, fileToBase64 } from "@/lib/base64";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { $dexie } from "@/lib/dexie";
+import { extractTitle } from '@/lib/chat'
 
 type ConversationProps = {
     chatSessionId: string | null,
@@ -23,6 +24,7 @@ export default function Conversation({ messages, setMessages, chatSessionId, ini
     const chatServiceRef = useRef<TouriClientChatService | null>(null)
     const initialMessageSentRef = useRef(false) // Track if initial message has been sent
     const [loading, setLoading] = useState(false)
+    const [thought, setThought] = useState<string | null>(null)
     const [sessionId, setSessionId] = useState<string | null>(chatSessionId)
     const router = useRouter()
 
@@ -73,12 +75,16 @@ export default function Conversation({ messages, setMessages, chatSessionId, ini
                         }
                     });
                 },
+                onThoughtStream(thought) {
+                    setThought(extractTitle(thought) || null)
+                },
                 onResponseEnd: () => {
                     /* response ended */
                     setLoading(false)
                 },
                 onResponseStart: () => {
                     /* response started */
+                    setThought(null)
                     setLoading(true)
                     setMessages((prev) => {
                         // Remove any existing empty assistant messages to prevent duplicates
@@ -141,7 +147,7 @@ export default function Conversation({ messages, setMessages, chatSessionId, ini
         if (initialMessage && chatServiceRef.current && !initialMessageSentRef.current) {
             console.log("Sending initial message:", initialMessage.text);
             initialMessageSentRef.current = true; // Mark as sent
-            
+
             const fileParsedFromBase64 = initialMessage.files?.map(file => base64ToFile(
                 file.content,
                 file.mimeType
@@ -181,6 +187,7 @@ export default function Conversation({ messages, setMessages, chatSessionId, ini
                                             key={index}
                                             {...msg}
                                             isLoading={index === messages.length - 1 && loading}
+                                            thought={thought ?? "Thinking"}
                                         />
                                     ))}
                             </div>

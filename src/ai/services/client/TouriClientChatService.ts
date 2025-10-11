@@ -33,6 +33,7 @@ export class TouriClientChatService implements ITouriClientChatService {
     onResponseStart: () => void;
     onResponseEnd: () => void;
     onResponseStream: (chunk: string) => void;
+    onThoughtStream: (thought: string) => void = () => { };
     onSpotsAddition: (spots: Spot[]) => Promise<void>;
     onSessionCreation: (sessionId: string) => void
 
@@ -44,6 +45,7 @@ export class TouriClientChatService implements ITouriClientChatService {
             onResponseStream?: (chunk: string) => void;
             onSpotsAddition?: (spots: Spot[]) => Promise<void>;
             onSessionCreation?: (sessionId: string) => void;
+            onThoughtStream?: (thought: string) => void;
         } = {}
     ) {
         this.sessionId = sessionId;
@@ -57,6 +59,8 @@ export class TouriClientChatService implements ITouriClientChatService {
         });
         this.onSessionCreation = callbacks.onSessionCreation ?? (() => {
         });
+        this.onThoughtStream = callbacks.onThoughtStream ?? (() => {
+        })
     }
 
     /**
@@ -105,7 +109,7 @@ export class TouriClientChatService implements ITouriClientChatService {
 
         this.isGenerating = true;
         this.onResponseStart();
-    
+
         try {
             // Convert files to the format expected by the backend
             const formattedFiles = await Promise.all(
@@ -160,9 +164,12 @@ export class TouriClientChatService implements ITouriClientChatService {
                             this.onSessionCreation(data.sessionId)
                         }
                         if ('spots' in data) {
-                             console.log("Spots received:", data.spots);
-                             await this.onSpotsAddition(data.spots);
-                         } 
+                            console.log("Spots received:", data.spots);
+                            await this.onSpotsAddition(data.spots);
+                        }
+                        if ('thought' in data) {
+                            this.onThoughtStream(data.thought as string);
+                        }
                         if ('finished' in data && data.finished) {
                             // The stream is done, the finally block will handle the rest
                             return;

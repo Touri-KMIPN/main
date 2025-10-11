@@ -253,29 +253,43 @@ export class TouriChatService {
         let fullResponse = ''
         let thoughts = ''
         let pendingFunctionCalls: FunctionCall[] = [];
+        let hasFunctionCalls = false;
 
+        // First pass: collect all parts and check for function calls
         for await (const chunk of response) {
             if (chunk.candidates && chunk.candidates[0]?.content?.parts) {
                 for (const part of chunk.candidates[0].content.parts) {
                     if (part.functionCall) {
                         // Collect function calls to execute them all at once
                         pendingFunctionCalls.push(part.functionCall);
+                        hasFunctionCalls = true;
                     }
+
 
                     if (!part.text) {
                         continue;
                     } else if (part.thought) {
                         // Handle thought parts if needed
-                        thoughts += part.text;
+                        // thoughts += part.text;
+                        if (thoughts.length === 0) {
+                            thoughts = part.text;
+                        }
                         this.onThoughtStreamCallback(thoughts);
                     } else {
-                        if (!hasStarted) {
-                            this.onResponseStartCallback();
-                            hasStarted = true;
-                        }
+                        // Only stream text if there are no function calls
+                        // This prevents duplicate responses when AI generates text before/after function calls
+                        if (!hasFunctionCalls) {
+                            if (!hasStarted) {
+                                this.onResponseStartCallback();
+                                hasStarted = true;
+                            }
 
-                        fullResponse += part.text;
-                        this.onResponseStreamCallback(part.text);
+                            fullResponse += part.text;
+                            this.onResponseStreamCallback(part.text);
+                        } else {
+                            // Still collect the text but don't stream it if there are function calls
+                            fullResponse += part.text;
+                        }
                     }
                 }
             }
@@ -287,6 +301,17 @@ export class TouriChatService {
                 pendingFunctionCalls.map(call => call.name));
             
             const toolParts = await this.handleToolCalls(pendingFunctionCalls, this.context);
+            
+            // Save the initial response with function calls if there was any text
+            if (fullResponse) {
+                await this.pushHistory({
+                    role: 'model',
+                    parts: [{ text: fullResponse }],
+                    sessionId: this.sessionId!,
+                    createdAt: new Date(),
+                });
+            }
+
             await this.pushHistory({
                 role: 'function',
                 parts: toolParts,
@@ -302,12 +327,13 @@ export class TouriChatService {
                 config: this.createConfig()
             });
 
+            // Recursively handle the follow-up response - this will handle onResponseEndCallback properly
             await this.handleMessage(followUpResponse);
-            return; // Exit after handling follow-up
+            return; // Exit after handling follow-up - don't call onResponseEndCallback here
         }
 
-        // Add the complete response to history after the loop finishes
-        if (fullResponse) {
+        // Add the complete response to history after the loop finishes (only if no function calls)
+        if (fullResponse && !hasFunctionCalls) {
             await this.pushHistory({
                 role: 'model',
                 parts: [{ text: fullResponse }],
@@ -316,7 +342,11 @@ export class TouriChatService {
             });
         }
 
-        this.onResponseEndCallback();
+        // Only call onResponseEndCallback if this is not a function call scenario
+        // The recursive call will handle it properly
+        if (!hasFunctionCalls) {
+            this.onResponseEndCallback();
+        }
     }
 
     /**
