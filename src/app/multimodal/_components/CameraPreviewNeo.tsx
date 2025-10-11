@@ -8,7 +8,7 @@ import {
   VideoIcon,
   VideoOffIcon,
 } from "lucide-react";
-import { TouriClientLiveService } from "@/services/client/TouriClientLiveService";
+import { TouriClientLiveService } from "@/ai/services/client/TouriClientLiveService";
 import { useSpots } from "@/providers/SpotsProvider";
 import { Spot } from "@/types/spot";
 import { Base64 } from "js-base64";

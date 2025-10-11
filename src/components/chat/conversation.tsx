@@ -1,5 +1,5 @@
 import { useSpots } from '@/providers/SpotsProvider'
-import { TouriClientChatService } from '@/services/client/TouriClientChatService'
+import { TouriClientChatService } from '@/ai/services/client/TouriClientChatService'
 import { Message } from '@/types/chat'
 import { Spot } from '@/types/spot'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
@@ -51,10 +51,10 @@ export default function Conversation({ messages, setMessages, chatSessionId, ini
             {
                 onSpotsAddition: async (spots: Spot[]) => {
                     /* onSpotsAddition */
+                    setSpots(prev => prev.concat(spots))
 
                     await updateSpotsInDB(spots);
 
-                    setSpots(prev => prev.concat(spots))
                 },
                 onResponseStream: (chunk) => {
                     // streaming response chunk

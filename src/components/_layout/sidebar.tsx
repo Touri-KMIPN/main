@@ -92,7 +92,7 @@ export function Sidebar({ isOpen, onToggle, sessions }: SidebarProps) {
             <Separator className={"my-2"} />
             {/* History Item */}
             <div className="max-h-[75dvh] flex flex-col gap-2 overflow-y-auto">
-              {sessions.map((item, index) => (
+              {sessions.toReversed().map((item, index) => (
                 <div
                   key={index}
                   className="flex items-center w-full justify-between group"

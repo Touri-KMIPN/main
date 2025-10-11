@@ -1,4 +1,4 @@
-import {SessionService} from "@/services/server/SessionService";
+import {SessionService} from "@/ai/services/server/SessionService";
 import {NextRequest, NextResponse} from "next/server";
 import {getKindeServerSession} from "@kinde-oss/kinde-auth-nextjs/server";
 

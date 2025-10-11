@@ -13,7 +13,7 @@ export default function MapView() {
   if (!apiKey) {
     throw new Error("Missing Api key");
   }
-  const { latitude, longitude, loading, error } = useGeolocation();
+  const { latitude, longitude, loading } = useGeolocation();
 
   // Use user location if available, otherwise fallback to default
   const mapCenter =

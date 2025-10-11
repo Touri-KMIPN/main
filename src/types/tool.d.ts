@@ -86,7 +86,7 @@ export interface LiveCallableTool {
 /**
 * Callable tool with direct schema definition
 */
-export interface ChatCallableTool {
+export interface ChatCallableFunction {
     /**
      * The name of the tool.
      */

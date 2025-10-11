@@ -1,6 +1,5 @@
 "use client";
 import { useState, useCallback } from "react";
-import CameraPreviewSDK from "./_components/CameraPreviewSDK";
 import { ArrowLeft, MapIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -30,7 +29,7 @@ export default function Home() {
   return (
     <>
       <SpotsProvider>
-        <div className="fixed inset-x-5 top-10 z-50 flex items-center justify-between">
+        {/* <div className="fixed inset-x-5 top-10 z-50 flex items-center justify-between">
           <Button
             className="rounded-full cursor-pointer h-12 w-12"
             onClick={() => router.back()}
@@ -55,7 +54,7 @@ export default function Home() {
               <MapView />
             </SheetContent>
           </Sheet>
-        </div>
+        </div> */}
         <div className="max-h-dvh max-w-dvw overflow-hidden flex flex-col items-center justify-center">
           <div className="flex">
             <CameraPreviewNeo onTranscription={handleTranscription} />
