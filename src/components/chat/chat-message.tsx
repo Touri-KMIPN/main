@@ -1,12 +1,13 @@
 import { Message } from "@/types/chat";
 import React, { useMemo } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { SparklesIcon, User2 } from "lucide-react";
+import {  SparklesIcon, User2, User2Icon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MarkdownLLM } from "./markdown-renderer";
 import { useSpots } from "@/providers/SpotsProvider";
 import { base64ToFile } from "@/lib/base64";
 import FilePreview from "./file-preview";
+import Image from "next/image";
 
 export default function ChatMessage({
   text,
@@ -25,11 +26,11 @@ export default function ChatMessage({
     <div className="m-4">
       <div
         className={cn(
-          "p-2 rounded-lg flex flex-col gap-2",
-          role === "user" ? "items-end" : "items-start flex-row"
+          "p-2 rounded-lg flex gap-2",
+          role === "user" ? "flex-row-reverse" : "flex-row"
         )}
       >
-        <Avatar className="size-6">
+        <Avatar className="size-8">
           <AvatarFallback
             className={cn(
               role === "model"
@@ -38,9 +39,10 @@ export default function ChatMessage({
             )}
           >
             {role === "user" ? (
-              <User2 className="size-4" />
+              <User2Icon className="size-4" />
             ) : (
-              <SparklesIcon className="size-4" />
+              // <SparklesIcon className="size-4" />
+              <Image src={"/icon/web-app-manifest-192x192.png"} alt="touri" fill className="size-4"  />
             )}
           </AvatarFallback>
         </Avatar>
