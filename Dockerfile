@@ -30,7 +30,12 @@ COPY . .
 # ENV NEXT_TELEMETRY_DISABLED 1
 
 # Set mock environment variables for build
+ENV KINDE_CLIENT_ID touriapp-sample
+ENV KINDE_CLIENT_SECRET touriapp-sample-secret
 ENV KINDE_ISSUER_URL https://yourapp.kinde.com
+ENV KINDE_SITE_URL http://yourapp.com
+ENV KINDE_POST_LOGOUT_REDIRECT_URL http://yourapp.com
+ENV KINDE_POST_LOGIN_REDIRECT_URL http://yourapp.com/chat
 
 RUN \
     if [ -f yarn.lock ]; then yarn build; \
