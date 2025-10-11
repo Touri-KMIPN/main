@@ -1,9 +1,9 @@
-import { CallableTool_2 } from "@/types/tool";
+import { ChatCallableFunction } from "@/types/tool";
 import z from "zod";
 
 const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY || '';
 
-export const SearchPlaceTools: CallableTool_2 = {
+export const SearchPlaceTools: ChatCallableFunction = {
     name: "search_place",
     description: "Search for places based on a query and location.",
     schema: z.object({
@@ -83,73 +83,12 @@ export const SearchPlaceTools: CallableTool_2 = {
             spots: data.places
         }
     },
-    async liveExecute(args) {
-        if (!args) {
-            throw new Error('Invalid arguments');
-        }
-
-        const validated = this.validate?.(args);
-        if (!validated.success) {
-            throw new Error(`Invalid arguments: ${validated.error.message}`);
-        }
-
-        let { maxResultCount, radius, locationCenter, textQuery } = validated.data;
-
-        if (!radius) {
-            if (!navigator.geolocation) {
-                throw new Error("Geolocation is not supported by user's browser make sure the user enable and allowed location.");
-            }
-            const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-                navigator.geolocation.getCurrentPosition(resolve, reject);
-            }
-            );
-
-            locationCenter = {
-                latitude: position.coords.latitude,
-                longitude: position.coords.longitude
-            }
-        }
-
-        try {
-            const searchParams = new URLSearchParams({
-                maxResultCount: maxResultCount.toString(),
-                radius: radius.toString(),
-                latitude: locationCenter?.latitude.toString() || '0',
-                longitude: locationCenter?.longitude.toString() || '0',
-                textQuery
-            });
-
-            const response = await fetch(`/api/resource/place?${searchParams.toString()}`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error(`API request failed with status ${response.status}: ${response.statusText}`);
-            }
-
-            const data = await response.json();
-
-            if (!data.locations || !Array.isArray(data.locations)) {
-                throw new Error('Invalid API response: missing locations array');
-            }
-
-            return {
-                spots: data.locations
-            }
-        } catch (error) {
-            console.error('Error occurred while fetching places:', error);
-            throw new Error('Failed to fetch places');
-        }
-    },
     validate(args) {
         return this.schema?.safeParse(args);
     },
 }
 
-export const GetUserLocationTool: CallableTool_2 = {
+export const GetUserLocationTool: ChatCallableFunction = {
     name: "get_user_location",
     description: "Get the user's current geographical location (latitude and longitude).",
     async execute(_, context) {
@@ -158,24 +97,9 @@ export const GetUserLocationTool: CallableTool_2 = {
             longitude: parseFloat(context.geoLocation?.lng || "0")
         }
     },
-    async liveExecute(_) {
-        if (!navigator.geolocation) {
-            throw new Error("Geolocation is not supported by user's browser make sure the user enable and allowed location.");
-        }
-
-        const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-            navigator.geolocation.getCurrentPosition(resolve, reject);
-        }
-
-        );
-        return {
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude
-        }
-    }
 }
 
-export const ReverseGeocodingTool: CallableTool_2 = {
+export const ReverseGeocodingTool: ChatCallableFunction = {
     name: "reverse_geocode_tool",
     description: `
     Get the closest location based on latitude and longitude.
@@ -199,32 +123,6 @@ export const ReverseGeocodingTool: CallableTool_2 = {
             key: GOOGLE_MAPS_API_KEY || '',
         });
 
-
-        const response = await fetch(`${REQUEST_URI}?${searchParams.toString()}`, {
-            method: 'POST',
-        })
-
-        if (!response.ok) {
-            throw new Error(`API request failed with status ${response.status}: ${response.statusText}`);
-        }
-
-        const data = await response.json();
-
-        return data
-    },
-    async liveExecute(args) {
-        const validated = this.validate?.(args);
-        if (!validated.success) {
-            throw new Error(`Invalid arguments: ${validated.error.message}`);
-        }
-
-        const { latitude, longitude } = validated.data;
-
-        const REQUEST_URI = "/api/resource/geocoding"
-        const searchParams = new URLSearchParams({
-            latitude: latitude.toString(),
-            longitude: longitude.toString(),
-        });
 
         const response = await fetch(`${REQUEST_URI}?${searchParams.toString()}`, {
             method: 'POST',

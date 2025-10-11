@@ -1,12 +1,12 @@
 import { Part } from "@google/genai";
 import { NextRequest, NextResponse } from "next/server";
-import { TouriChatService } from "@/services/server/TouriChatService";
-import { CallableTool_2 } from "@/types/tool";
+import { TouriChatService } from "@/ai/services/server/TouriChatService";
+import { ChatCallableFunction } from "@/types/tool";
 import {
   GetUserLocationTool,
   ReverseGeocodingTool,
   SearchPlaceTools,
-} from "@/tools/MapTools";
+} from "@/ai/tools/MapTools";
 import {
   GenerateRequestBodySchema,
   GenerateRequestHeaderSchema,
@@ -15,7 +15,7 @@ import { createSSEChunk } from "@/app/api/ai/generate/utils";
 import { $mongoClient } from "@/lib/db";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 
-const TOOLS: CallableTool_2[] = [
+const TOOLS: ChatCallableFunction[] = [
   SearchPlaceTools,
   GetUserLocationTool,
   ReverseGeocodingTool,
@@ -60,8 +60,23 @@ export async function POST(request: NextRequest) {
       async start(controller) {
         // Use the Google GenAI SDK to generate content based on the request body
 
+        console.log("Starting chat generation for user:", user.id, {
+          geoLocation: {
+            lat: headers.data.geolat,
+            lng: headers.data.geolng,
+          },
+        });
+
         const touriChatService = new TouriChatService({
           sessionId: headers.data.sessionid ?? null,
+          context: {
+            authenticatedUserId: user.id,
+            caller: "chat",
+            geoLocation: {
+              lat: headers.data.geolat,
+              lng: headers.data.geolng,
+            }
+          },
           onSpotAddition: (spots) => {
             controller.enqueue(
               encoder.encode(
@@ -82,20 +97,20 @@ export async function POST(request: NextRequest) {
               )
             );
           },
+          onResponseThought(thought) {
+              controller.enqueue(
+                encoder.encode(
+                  createSSEChunk({
+                    thought,
+                  })
+                )
+              );
+          },
           onResponseEnd: () => {
             /** OnResponseEnd */
           },
           onResponseStart: () => {
             /** OnResponseStart */
-          },
-          onThoughtStream: (thought) => {
-            controller.enqueue(
-              encoder.encode(
-                createSSEChunk({
-                  thoughtProcess: thought,
-                } as Part)
-              )
-            );
           },
           async onGenerationStart() {
             /** OnGenerationStart */

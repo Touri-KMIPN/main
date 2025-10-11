@@ -1,5 +1,5 @@
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
-import { SessionService } from "@/services/server/SessionService";
+import { SessionService } from "@/ai/services/server/SessionService";
 import { NextResponse } from "next/server";
 
 const sessionService = new SessionService();

@@ -139,8 +139,7 @@ export default function PromptInput({ onSend, loading, className }: PromptInput)
                                 size="sm"
                                 className='h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600'
                                 onClick={handleSend}>
-
-                                Magic Vision
+                                Live Vision
                                 <EyeIcon />
                             </Button>
                         </Link>

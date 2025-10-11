@@ -14,7 +14,8 @@ export default function ChatMessage({
   role,
   files,
   isLoading = false,
-}: Message & { isLoading?: boolean }) {
+  thought = "Thinking"
+}: Message & { isLoading?: boolean, thought?: string }) {
   const { spots } = useSpots();
 
   const parsedFiles = useMemo(() => {
@@ -58,10 +59,13 @@ export default function ChatMessage({
             role === "user" && "bg-muted p-2 rounded-l-lg rounded-br-lg w-fit"
           )}
         >
-          <MarkdownLLM markdown={text} spots={spots} />{" "}
-          {isLoading && <span className="animate-pulse">...</span>}
+          {isLoading && <>
+            <span className="animate-pulse">{thought}...</span>
+            <br />
+          </>}
+          <MarkdownLLM markdown={text} spots={spots} /> {isLoading && <span className="animate-pulse">█</span>}
         </div>
       </div>
-    </div>
+    </div >
   );
 }

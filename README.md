@@ -1,6 +1,6 @@
 Touri is an AI Tour Assistant that helps tourists 10x their experience!
 
-![alt text](<WhatsApp Image 2025-10-09 at 11.39.33_36804270.jpg>)
+![Mockup](<desktop-mockup.jpg>)
 
 An intelligent tourism companion powered by cutting-edge AI technology that provides personalized travel recommendations, real-time location insights, and interactive travel planning to make every journey unforgettable.
 

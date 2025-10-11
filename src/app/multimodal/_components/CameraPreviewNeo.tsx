@@ -8,25 +8,28 @@ import {
   VideoIcon,
   VideoOffIcon,
 } from "lucide-react";
-import { TouriLiveSDK } from "@/services/client/TouriLiveService";
+import { TouriClientLiveService } from "@/ai/services/client/TouriClientLiveService";
+import { useSpots } from "@/providers/SpotsProvider";
+import { Spot } from "@/types/spot";
 import { Base64 } from "js-base64";
 import { cn } from "@/lib/utils";
 
-interface CameraPreviewSDKProps {
+interface CameraPreviewNeoProps {
   onTranscription: (text: string) => void;
 }
 
-const delay = (ms: any) => new Promise((res) => setTimeout(res, ms));
+const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
-export default function CameraPreviewSDK({
+export default function CameraPreviewNeo({
   onTranscription,
-}: CameraPreviewSDKProps) {
+}: CameraPreviewNeoProps) {
+  const { setSpots } = useSpots();
   const videoRef = useRef<HTMLVideoElement>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const [isStreaming, setIsStreaming] = useState(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [audioLevel, setAudioLevel] = useState(0);
-  const geminiRef = useRef<TouriLiveSDK | null>(null);
+  const touriClientRef = useRef<TouriClientLiveService | null>(null);
   const videoCanvasRef = useRef<HTMLCanvasElement>(null);
   const audioWorkletNodeRef = useRef<AudioWorkletNode | null>(null);
   const [isAudioSetup, setIsAudioSetup] = useState(false);
@@ -41,97 +44,24 @@ export default function CameraPreviewSDK({
   const [camFacing, setCamFacing] = useState<"user" | "environment">("user");
   const [isCanFlipCamera, setIsCanFlipCamera] = useState(false);
 
-    // useEffect(() => {
-    //   // Fungsi untuk mengecek jumlah kamera
-    //   const checkForMultipleCameras = async () => {
-    //     try {
-    //       const devices = await navigator.mediaDevices.enumerateDevices();
-    //       // Saring perangkat, ambil yang jenisnya video (kamera) saja
-    //       const videoDevices = devices.filter(
-    //         (device) => device.kind === "videoinput"
-    //       );
-
-    //       console.log("Available video devices:", videoDevices);
-
-    //       // Jika jumlah kamera lebih dari 1, aktifkan tombol flip
-    //       if (videoDevices.length > 1) {
-    //         setIsCanFlipCamera(true);
-    //       }
-    //     } catch (error) {
-    //       console.error("Error checking for cameras:", error);
-    //     }
-    //   };
-
-    //   checkForMultipleCameras();
-    // }, []);
-
-  //  useEffect(() => {
-  //    // Jalankan hanya jika kamera sedang streaming
-  //    if (isStreaming && stream) {
-  //      // 1. Matikan stream yang sedang berjalan
-  //      stream.getTracks().forEach((track) => track.stop());
-
-  //      // 2. Minta stream baru dengan camFacing yang sudah diperbarui
-  //      // (Kita 'mencuri' logika dari fungsi toggleCamera-mu)
-  //      const getNewStream = async () => {
-  //        try {
-  //          const videoStream = await navigator.mediaDevices.getUserMedia({
-  //            video: {
-  //              facingMode: camFacing, // Pakai state camFacing yang baru
-  //            },
-  //            audio: false,
-  //          });
-
-  //          const audioStream = await navigator.mediaDevices.getUserMedia({
-  //            audio: {
-  //              sampleRate: 16000,
-  //              channelCount: 1,
-  //              echoCancellation: true,
-  //              autoGainControl: true,
-  //              noiseSuppression: true,
-  //            },
-  //          });
-
-  //          const combinedStream = new MediaStream([
-  //            ...videoStream.getTracks(),
-  //            ...audioStream.getTracks(),
-  //          ]);
-
-  //          if (videoRef.current) {
-  //            videoRef.current.srcObject = combinedStream;
-  //          }
-
-  //          // Update state stream agar konsisten
-  //          setStream(combinedStream);
-  //        } catch (err) {
-  //          console.error("[CameraSDK] Error flipping camera:", err);
-  //        }
-  //      };
-
-  //      getNewStream();
-  //    }
-  //    // Dependency array: Kode ini akan berjalan setiap kali 'camFacing' berubah
-  //  }, [camFacing]);
-
   const flipCamera = async () => {
     if (!stream || !isStreaming) return;
 
-    // 1. Ambil dan HENTIKAN trek video yang lama DULUAN
+    // 1. Stop and remove current video track
     const currentVideoTrack = stream.getVideoTracks()[0];
     if (currentVideoTrack) {
       currentVideoTrack.stop();
       stream.removeTrack(currentVideoTrack);
     }
 
-    // Beri jeda 100 milidetik agar hardware 'bebas'
-    // Ini adalah bagian kuncinya untuk HP
+    // Wait for hardware to be released
     await delay(100);
 
-    // 2. Tentukan mode kamera baru
+    // 2. Determine new camera mode
     const newFacingMode = camFacing === "user" ? "environment" : "user";
 
     try {
-      // 3. Minta akses ke kamera baru
+      // 3. Request new camera stream
       const newVideoStream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: newFacingMode },
         audio: false,
@@ -139,7 +69,7 @@ export default function CameraPreviewSDK({
 
       const newVideoTrack = newVideoStream.getVideoTracks()[0];
 
-      // 4. Tambahkan trek baru ke stream
+      // 4. Add new track to existing stream
       stream.addTrack(newVideoTrack);
 
       if (videoRef.current) {
@@ -150,11 +80,11 @@ export default function CameraPreviewSDK({
       setCamFacing(newFacingMode);
     } catch (err) {
       console.error(
-        `[CameraSDK] Gagal mengakses kamera ${newFacingMode}:`,
+        `[CameraPreviewNeo] Failed to access ${newFacingMode} camera:`,
         err
       );
       alert(
-        "Gagal memutar kamera. Coba lagi atau pastikan tidak ada aplikasi lain yang aktif."
+        "Failed to flip camera. Please try again or ensure no other app is using the camera."
       );
     }
   };
@@ -171,19 +101,19 @@ export default function CameraPreviewSDK({
   }, []);
 
   const cleanupWebSocket = useCallback(() => {
-    if (geminiRef.current) {
-      geminiRef.current.disconnect();
-      geminiRef.current = null;
+    if (touriClientRef.current) {
+      touriClientRef.current.disconnect();
+      touriClientRef.current = null;
     }
   }, []);
 
   const sendAudioData = (b64Data: string) => {
-    if (!geminiRef.current) return;
-    geminiRef.current.sendMediaChunk(b64Data, "audio/pcm;rate=16000");
+    if (!touriClientRef.current) return;
+    touriClientRef.current.sendMediaChunk(b64Data, "audio/pcm;rate=16000");
   };
 
   const toggleCamera = async () => {
-    // BAGIAN SAAT MEMATIKAN KAMERA
+    // Turn OFF camera
     if (isStreaming && stream) {
       setIsStreaming(false);
       cleanupWebSocket();
@@ -193,9 +123,9 @@ export default function CameraPreviewSDK({
         videoRef.current.srcObject = null;
       }
       setStream(null);
-      setIsCanFlipCamera(false); // <-- TAMBAHAN: Reset state saat kamera mati
+      setIsCanFlipCamera(false);
     }
-    // BAGIAN SAAT MENYALAKAN KAMERA
+    // Turn ON camera
     else {
       try {
         const videoStream = await navigator.mediaDevices.getUserMedia({
@@ -207,20 +137,20 @@ export default function CameraPreviewSDK({
           audio: {
             sampleRate: 16000,
             channelCount: 1,
-            // ... properti audio lainnya
+            echoCancellation: true,
+            autoGainControl: true,
+            noiseSuppression: true,
           },
         });
 
-        // ==> LOGIKA PENGECEKAN KAMERA PINDAH KE SINI <==
-        // Setelah izin didapat, baru kita cek jumlah kamera.
+        // Check for multiple cameras after permissions are granted
         const devices = await navigator.mediaDevices.enumerateDevices();
         const videoDevices = devices.filter(
           (device) => device.kind === "videoinput"
         );
         if (videoDevices.length > 1) {
-          setIsCanFlipCamera(true); // Tombol flip akan aktif
+          setIsCanFlipCamera(true);
         }
-        // =================================================
 
         audioContextRef.current = new AudioContext({ sampleRate: 16000 });
 
@@ -237,13 +167,13 @@ export default function CameraPreviewSDK({
         setStream(combinedStream);
         setIsStreaming(true);
       } catch (err) {
-        console.error("[CameraSDK] Error accessing media devices:", err);
+        console.error("[CameraPreviewNeo] Error accessing media devices:", err);
         cleanupAudio();
       }
     }
   };
 
-  // Initialize SDK connection
+  // Initialize TouriClientLiveService connection
   useEffect(() => {
     if (!isStreaming) {
       setConnectionStatus("disconnected");
@@ -251,20 +181,34 @@ export default function CameraPreviewSDK({
     }
 
     setConnectionStatus("connecting");
-    geminiRef.current = new TouriLiveSDK(
+    touriClientRef.current = new TouriClientLiveService(
+      // onMessage - text responses
       (text) => {
-        console.log("[CameraSDK] Received text:", text);
+        console.log("[CameraPreviewNeo] Received text:", text);
+        onTranscription(text);
       },
+      // onSetupComplete - connection ready
       () => {
-        console.log("[CameraSDK] Live session ready");
+        console.log("[CameraPreviewNeo] Touri Live service ready");
         setIsWebSocketReady(true);
         setConnectionStatus("connected");
       },
+      // onPlayingStateChange - audio playback state
       (isPlaying) => setIsModelSpeaking(isPlaying),
+      // onAudioLevelChange - audio level during playback
       (level) => setOutputAudioLevel(level),
-      []
+      // onTranscription - transcription of AI responses
+      (transcription) => {
+        console.log("[CameraPreviewNeo] AI response transcription:", transcription);
+        // You can handle transcription here if needed
+      },
+      (status) => {
+        // OnAuthenticated
+        console.log("[CameraPreviewNeo] WebSocket authenticated:", status);
+      }
     );
-    geminiRef.current.connect();
+    
+    touriClientRef.current.connect();
 
     return () => {
       if (imageIntervalRef.current) {
@@ -277,7 +221,7 @@ export default function CameraPreviewSDK({
     };
   }, [isStreaming, onTranscription, cleanupWebSocket]);
 
-  // Start image capture only after SDK is ready
+  // Start image capture only after service is ready
   useEffect(() => {
     if (!isStreaming || !isWebSocketReady) return;
 
@@ -365,7 +309,7 @@ export default function CameraPreviewSDK({
         };
       } catch (error) {
         if (isActive) {
-          console.error("[CameraSDK] Audio setup error", error);
+          console.error("[CameraPreviewNeo] Audio setup error", error);
           cleanupAudio();
           setIsAudioSetup(false);
         }
@@ -387,11 +331,11 @@ export default function CameraPreviewSDK({
   }, [isStreaming, stream, isWebSocketReady, isModelSpeaking]);
 
   const captureAndSendImage = () => {
-    if (!videoRef.current || !videoCanvasRef.current || !geminiRef.current) {
-      console.warn("[CameraSDK] Missing refs for image capture:", {
+    if (!videoRef.current || !videoCanvasRef.current || !touriClientRef.current) {
+      console.warn("[CameraPreviewNeo] Missing refs for image capture:", {
         video: !!videoRef.current,
         canvas: !!videoCanvasRef.current,
-        gemini: !!geminiRef.current
+        touriClient: !!touriClientRef.current
       });
       return;
     }
@@ -401,7 +345,7 @@ export default function CameraPreviewSDK({
     
     // Check if video is ready
     if (video.readyState < 2 || video.videoWidth === 0 || video.videoHeight === 0) {
-      console.warn("[CameraSDK] Video not ready for capture:", {
+      console.warn("[CameraPreviewNeo] Video not ready for capture:", {
         readyState: video.readyState,
         videoWidth: video.videoWidth,
         videoHeight: video.videoHeight
@@ -411,7 +355,7 @@ export default function CameraPreviewSDK({
 
     const context = canvas.getContext("2d");
     if (!context) {
-      console.error("[CameraSDK] Could not get canvas context");
+      console.error("[CameraPreviewNeo] Could not get canvas context");
       return;
     }
 
@@ -424,15 +368,15 @@ export default function CameraPreviewSDK({
       const imageData = canvas.toDataURL("image/jpeg", 0.8);
       const b64Data = imageData.split(",")[1];
       
-      console.log("[CameraSDK] Capturing and sending image:", {
+      console.log("[CameraPreviewNeo] Capturing and sending image:", {
         width: canvas.width,
         height: canvas.height,
         dataLength: b64Data.length
       });
       
-      geminiRef.current.sendMediaChunk(b64Data, "image/jpeg");
+      touriClientRef.current.sendMediaChunk(b64Data, "image/jpeg");
     } catch (error) {
-      console.error("[CameraSDK] Error capturing image:", error);
+      console.error("[CameraPreviewNeo] Error capturing image:", error);
     }
   };
 
@@ -452,7 +396,7 @@ export default function CameraPreviewSDK({
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto" />
               <p className="text-white font-medium">
                 {connectionStatus === "connecting"
-                  ? "Connecting to Gemini..."
+                  ? "Connecting to Touri Live..."
                   : "Disconnected"}
               </p>
               <p className="text-white/70 text-sm">

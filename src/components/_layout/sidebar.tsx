@@ -92,7 +92,7 @@ export function Sidebar({ isOpen, onToggle, sessions }: SidebarProps) {
             <Separator className={"my-2"} />
             {/* History Item */}
             <div className="max-h-[75dvh] flex flex-col gap-2 overflow-y-auto">
-              {sessions.map((item, index) => (
+              {sessions.toReversed().map((item, index) => (
                 <div
                   key={index}
                   className="flex items-center w-full justify-between group"
@@ -132,7 +132,7 @@ export function Sidebar({ isOpen, onToggle, sessions }: SidebarProps) {
       </nav>
 
       {/* Footer */}
-      <div className="border-t border-sidebar-border absolute max-w-58 bottom-0 bg-primary-foreground p-4">
+      <div className="border-t border-sidebar-border absolute max-w-58 bottom-0 p-4">
         {isOpen ? (
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent text-primary-foreground">
