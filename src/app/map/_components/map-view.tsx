@@ -27,6 +27,8 @@ export default function MapView() {
     return;
   }
 
+  console.log("[MapView] Rendering spots", spots);
+
   return (
     <>
       <div className="h-full w-full">

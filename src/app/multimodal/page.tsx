@@ -29,14 +29,14 @@ export default function Home() {
   return (
     <>
       <SpotsProvider>
-        {/* <div className="fixed inset-x-5 top-10 z-50 flex items-center justify-between">
+        <div className="fixed inset-x-5 top-10 z-50 flex items-center justify-between">
           <Button
             className="rounded-full cursor-pointer h-12 w-12"
             onClick={() => router.back()}
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <Sheet>
+          {/* <Sheet>
             <SheetTrigger asChild>
               <Button
                 variant="outline"
@@ -53,8 +53,8 @@ export default function Home() {
               </VisuallyHidden>
               <MapView />
             </SheetContent>
-          </Sheet>
-        </div> */}
+          </Sheet> */}
+        </div>
         <div className="max-h-dvh max-w-dvw overflow-hidden flex flex-col items-center justify-center">
           <div className="flex">
             <CameraPreviewNeo onTranscription={handleTranscription} />
