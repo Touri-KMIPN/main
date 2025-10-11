@@ -201,6 +201,10 @@ export default function CameraPreviewNeo({
       (transcription) => {
         console.log("[CameraPreviewNeo] AI response transcription:", transcription);
         // You can handle transcription here if needed
+      },
+      (status) => {
+        // OnAuthenticated
+        console.log("[CameraPreviewNeo] WebSocket authenticated:", status);
       }
     );
     
