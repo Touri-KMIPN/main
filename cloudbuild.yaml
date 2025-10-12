@@ -1,40 +1,60 @@
-substitutions:
-  _TOURI_LIVE_BACKEND_ENDPOINT: 'wss://live.touriai.com/touri/live'
-
 steps:
-  # Docker Build
-  - name: 'gcr.io/cloud-builders/docker'
-    entrypoint: 'bash'
+  - name: gcr.io/cloud-builders/docker
     args:
-      - 'build'
+      - build
       - '--build-arg'
-      - 'NEXT_PUBLIC_MAPS_API_KEY=$$MAPS_API_KEY'
+      - 'NEXT_PUBLIC_MAPS_API_KEY=${_MAPS_API_KEY}'
       - '--build-arg'
-      - 'NEXT_PUBLIC_MAPS_ID=$$MAPS_ID'
+      - 'NEXT_PUBLIC_MAPS_ID=${_MAPS_ID}'
       - '--build-arg'
-      - 'NEXT_PUBLIC_TOURI_LIVE_ENDPOINT=$_TOURI_LIVE_BACKEND_ENDPOINT'
+      - 'NEXT_PUBLIC_TOURI_LIVE_ENDPOINT=${_TOURI_LIVE_BACKEND_ENDPOINT}'
+      - '--no-cache'
       - '-t'
-      - 'asia-southeast1-docker.pkg.dev/touri-473900/touri-main/main'
-      - '.'
-    secretEnv: ['MAPS_API_KEY', 'MAPS_ID']
-
-  # Docker Push
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 
-           'asia-southeast1-docker.pkg.dev/touri-473900/touri-main/main']
-
-  # Entrypoint, timeout and environment variables
-  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-    entrypoint: 'gcloud'
-    timeout: 240s
-    args: ['compute', 'instances', 
-           'create-with-container', 'my-vm-name',
-           '--container-image', 
-           'asia-southeast1-docker.pkg.dev/touri-473900/touri-main/main']
-
-availableSecrets:
-  secretManager:
-  - versionName: projects/touri-473900/secrets/TOURI_MAPS_API_KEY/versions/latest
-    env: 'MAPS_API_KEY'
-  - versionName: projects/touri-473900/secrets/TOURI_MAPS_ID/versions/latest
-    env: 'MAPS_ID'
+      - >-
+        $_AR_HOSTNAME/$_AR_PROJECT_ID/$_AR_REPOSITORY/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA
+      - .
+      - '-f'
+      - Dockerfile
+    id: Build
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - >-
+        $_AR_HOSTNAME/$_AR_PROJECT_ID/$_AR_REPOSITORY/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA
+    id: Push
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
+    args:
+      - run
+      - services
+      - update
+      - $_SERVICE_NAME
+      - '--platform=managed'
+      - >-
+        --image=$_AR_HOSTNAME/$_AR_PROJECT_ID/$_AR_REPOSITORY/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA
+      - >-
+        --labels=managed-by=gcp-cloud-build-deploy-cloud-run,commit-sha=$COMMIT_SHA,gcb-build-id=$BUILD_ID,gcb-trigger-id=$_TRIGGER_ID
+      - '--region=$_DEPLOY_REGION'
+      - '--quiet'
+    id: Deploy
+    entrypoint: gcloud
+images:
+  - >-
+    $_AR_HOSTNAME/$_AR_PROJECT_ID/$_AR_REPOSITORY/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA
+options:
+  substitutionOption: ALLOW_LOOSE
+  logging: CLOUD_LOGGING_ONLY
+substitutions:
+  _MAPS_ID: <please-use-inline-yaml-option>
+  _TRIGGER_ID: <please-use-inline-yaml-option>
+  _AR_PROJECT_ID: <please-use-inline-yaml-option>
+  _AR_REPOSITORY: cloud-run-source-deploy
+  _SERVICE_NAME: <please-use-inline-yaml-option>
+  _DEPLOY_REGION: <please-use-inline-yaml-option>
+  _MAPS_API_KEY: <please-use-inline-yaml-option>
+  _TOURI_LIVE_BACKEND_ENDPOINT: <please-use-inline-yaml-option>
+  _PLATFORM: <please-use-inline-yaml-option>
+  _AR_HOSTNAME: <please-use-inline-yaml-option>
+tags:
+  - gcp-cloud-build-deploy-cloud-run
+  - gcp-cloud-build-deploy-cloud-run-managed
+  - touri-main
