@@ -28,10 +28,6 @@ export const faqData = [
     a: "You can contact our support team through the app or visit our website to provide feedback or report any issues you encounter.",
   },
   {
-    q: "Can I share my travel plans with friends or family?",
-    a: "Yes, Touri allows you to share your itineraries and travel plans with others directly through the app.",
-  },
-  {
     q: "What kind of destinations does Touri recommend?",
     a: "Touri recommends a wide range of destinations, from popular tourist spots to hidden gems, based on your interests and preferences.",
   },
