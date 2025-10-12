@@ -31,9 +31,6 @@ steps:
            'create-with-container', 'my-vm-name',
            '--container-image', 
            'asia-southeast1-docker.pkg.dev/touri-473900/touri-main/main']
-    env:
-      - 'CLOUDSDK_COMPUTE_REGION=asia-southeast1'
-      - 'CLOUDSDK_COMPUTE_ZONE=asia-southeast1-a'
 
 availableSecrets:
   secretManager:
