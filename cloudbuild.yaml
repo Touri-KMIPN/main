@@ -1,0 +1,39 @@
+substitutions:
+  _TOURI_LIVE_BACKEND_ENDPOINT: 'wss://live.touriai.com/touri/live'
+
+steps:
+  # Docker Build
+  - name: 'gcr.io/cloud-builders/docker'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        docker build --build-arg NEXT_PUBLIC_MAPS_API_KEY=$$MAPS_API_KEY \
+                     --build-arg NEXT_PUBLIC_MAPS_ID=$$MAPS_ID \
+                     --build-arg NEXT_PUBLIC_TOURI_LIVE_ENDPOINT=$$_TOURI_LIVE_BACKEND_ENDPOINT \
+                     -t asia-southeast1-docker.pkg.dev/touri-473900/touri-main/main .
+    secretEnv: ['MAPS_API_KEY', 'MAPS_ID']
+
+  # Docker Push
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 
+           'asia-southeast1-docker.pkg.dev/touri-473900/touri-main/main']
+
+  # Entrypoint, timeout and environment variables
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    timeout: 240s
+    args: ['compute', 'instances', 
+           'create-with-container', 'my-vm-name',
+           '--container-image', 
+           'asia-southeast1-docker.pkg.dev/touri-473900/touri-main/main']
+    env:
+      - 'CLOUDSDK_COMPUTE_REGION=asia-southeast1'
+      - 'CLOUDSDK_COMPUTE_ZONE=asia-southeast1-a'
+
+availableSecrets:
+  secretManager:
+  - versionName: projects/touri-473900/secrets/TOURI_MAPS_API_KEY/versions/latest
+    env: 'MAPS_API_KEY'
+  - versionName: projects/touri-473900/secrets/TOURI_MAPS_ID/versions/latest
+    env: 'MAPS_ID'
