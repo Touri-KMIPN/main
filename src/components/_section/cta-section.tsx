@@ -6,7 +6,7 @@ export default function CTASection() {
     <div
       className="relative bg-cover bg-center bg-fixed py-20 px-4"
       style={{
-        backgroundImage: `url('/images/ampera-unsplash.webp')`,
+        backgroundImage: `url('/images/palembang.webp')`,
       }}
     >
       <div className="absolute inset-0 bg-gradient-to-b from-background/70 via-background/50 to-background/80 backdrop-blur-sm"></div>
