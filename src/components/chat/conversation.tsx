@@ -160,7 +160,7 @@ export default function Conversation({ messages, setMessages, chatSessionId, ini
 
 
     return (
-        <div className="h-full flex flex-col">
+        <div className="h-full pt-12 flex flex-col">
             {/* Chat messages area - takes remaining space */}
             <div className="flex-1 overflow-hidden relative">
                 <ScrollArea className="h-full w-full">

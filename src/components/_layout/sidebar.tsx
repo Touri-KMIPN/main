@@ -42,7 +42,7 @@ export function Sidebar({ isOpen, onToggle, sessions }: SidebarProps) {
 
   return (
     <aside
-      className={`relative flex flex-col z-20 border-r border-border max-h-dvh overflow-hidden bg-sidebar transition-all duration-300 ${isOpen ? "w-full md:w-58" : "w-16"
+      className={`relative flex flex-col z-20 border-r border-border max-h-dvh overflow-hidden bg-sidebar transition-all duration-300 ${isOpen ? "w-full md:w-58" : "w-0 md:w-16"
         }`}
     >
       {/* Header */}
@@ -132,7 +132,7 @@ export function Sidebar({ isOpen, onToggle, sessions }: SidebarProps) {
       </nav>
 
       {/* Footer */}
-      <div className="border-t border-sidebar-border absolute max-w-58 bottom-0 p-4">
+      <div className="border-t border-sidebar-border absolute w-full md:max-w-58 bottom-0 p-4">
         {isOpen ? (
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent text-primary-foreground">
