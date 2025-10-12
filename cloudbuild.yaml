@@ -6,12 +6,16 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     entrypoint: 'bash'
     args:
-      - '-c'
-      - |
-        docker build --build-arg NEXT_PUBLIC_MAPS_API_KEY=$$MAPS_API_KEY \
-                     --build-arg NEXT_PUBLIC_MAPS_ID=$$MAPS_ID \
-                     --build-arg NEXT_PUBLIC_TOURI_LIVE_ENDPOINT=$$_TOURI_LIVE_BACKEND_ENDPOINT \
-                     -t asia-southeast1-docker.pkg.dev/touri-473900/touri-main/main .
+      - 'build'
+      - '--build-arg'
+      - 'NEXT_PUBLIC_MAPS_API_KEY=$$MAPS_API_KEY'
+      - '--build-arg'
+      - 'NEXT_PUBLIC_MAPS_ID=$$MAPS_ID'
+      - '--build-arg'
+      - 'NEXT_PUBLIC_TOURI_LIVE_ENDPOINT=$_TOURI_LIVE_BACKEND_ENDPOINT'
+      - '-t'
+      - 'asia-southeast1-docker.pkg.dev/touri-473900/touri-main/main'
+      - '.'
     secretEnv: ['MAPS_API_KEY', 'MAPS_ID']
 
   # Docker Push
