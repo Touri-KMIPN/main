@@ -11,6 +11,8 @@ export class VertexAISearchAgent extends BaseAgent {
     readonly description = `
     Use this tool to search for comprehensive tourism information with intelligent source selection.
     
+    **CRITICAL**: Even if tools response in indonesian or other language, respond in the language of the user's query.
+
     PRIMARY USE: Tourism knowledge from curated databases (Vertex AI Search)
     - Indonesian destinations, culture, history, and traditions
     - Tourist attractions, landmarks, temples, museums
@@ -63,7 +65,9 @@ export class VertexAISearchAgent extends BaseAgent {
                 - Latest news affecting travel (natural disasters, strikes, etc.)
 
                 IMPORTANT GUIDELINES:
+                - Even if the search results are in Indonesian or other language, respond in the language of the user's query
                 - Always prioritize Vertex AI Search for tourism knowledge and cultural information
+                - Even if the user asks for current information, first check Vertex AI Search for any relevant established content
                 - Only use Google Search when the query explicitly requires real-time, current, or frequently changing information
                 - If both sources provide relevant information, prioritize Vertex AI Search results and supplement with Google Search only for time-sensitive details
                 - Combine information from both sources when appropriate, clearly indicating which information comes from which source`,
