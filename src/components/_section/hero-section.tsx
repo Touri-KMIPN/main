@@ -99,17 +99,17 @@ export default function HeroSection() {
             {/* Floating cards */}
             <div className="hidden md:block absolute -top-6 -right-6 bg-background rounded-2xl p-4 shadow-xl border border-border">
               <DestinationCard
-                title="Raja Ampat"
-                subTitle="West Papua"
-                imageUrl="/images/raja-ampat-turquoise-water.jpg"
+                title="Ijo Temple"
+                subTitle="Yogyakarta"
+                imageUrl="/images/yogyakarta.webp"
               />
             </div>
 
             <div className="hidden md:block absolute -bottom-6 -left-6 bg-background rounded-2xl p-4 shadow-xl border border-border">
               <DestinationCard
-                title="Borobudur"
-                subTitle="Central Java"
-                imageUrl="/images/borobudur-temple-sunrise.jpg"
+                title="Ampera Bridge"
+                subTitle="South Sumatra"
+                imageUrl="/images/palembang.webp"
               />
             </div>
           </div>
