@@ -140,3 +140,45 @@ export const ReverseGeocodingTool: ChatCallableFunction = {
         return this.schema?.safeParse(args);
     }
 }
+
+export const GeocodingTool: ChatCallableFunction = {
+    name: "geocode_tool",
+    description: `
+    Get addresses components based on a given address.
+    this returns address components such as street, city, state, country, especially geolocation (latitude and longitude), and postal code.
+    `,
+    schema: z.object({
+        location: z.string().min(1, "location must be a non-empty string").describe("The address to geocode."),
+    }),
+    async execute(args) {   
+        const validated = this.validate?.(args);
+        if (!validated.success) {
+            throw new Error(`Invalid arguments: ${validated.error.message}`);
+        }
+
+        const { location } = validated.data;
+
+        console.log("GeocodingTool called with:", { location });
+
+        const REQUEST_URI = "https://maps.googleapis.com/maps/api/geocode/json"
+        const searchParams = new URLSearchParams({
+            address: location,
+            key: GOOGLE_MAPS_API_KEY || '',
+        });
+
+        const response = await fetch(`${REQUEST_URI}?${searchParams.toString()}`, {
+            method: 'GET',
+        })
+
+        if (!response.ok) {
+            throw new Error(`API request failed with status ${response.status}: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+
+        return data
+    },
+    validate(args) {
+        return this.schema?.safeParse(args);
+    },
+}
