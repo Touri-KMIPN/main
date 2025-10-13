@@ -141,7 +141,7 @@ export const ReverseGeocodingTool: ChatCallableFunction = {
     }
 }
 
-export const Geocidingtool: ChatCallableFunction = {
+export const GeocodingTool: ChatCallableFunction = {
     name: "geocode_tool",
     description: `
     Get addresses components based on a given address.
@@ -158,12 +158,13 @@ export const Geocidingtool: ChatCallableFunction = {
 
         const { location } = validated.data;
 
+        console.log("GeocodingTool called with:", { location });
+
         const REQUEST_URI = "https://maps.googleapis.com/maps/api/geocode/json"
         const searchParams = new URLSearchParams({
             address: location,
             key: GOOGLE_MAPS_API_KEY || '',
         });
-
 
         const response = await fetch(`${REQUEST_URI}?${searchParams.toString()}`, {
             method: 'GET',
@@ -177,5 +178,7 @@ export const Geocidingtool: ChatCallableFunction = {
 
         return data
     },
-
+    validate(args) {
+        return this.schema?.safeParse(args);
+    },
 }
