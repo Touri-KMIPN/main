@@ -1,12 +1,22 @@
 "use client";
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import PromptInput from "./prompt-input";
 import { useRouter } from "next/navigation";
 import { Message } from "@/types/chat";
 import { fileToBase64 } from "@/lib/base64";
+import { toast } from "sonner";
 
 export default function NewConversation() {
   const router = useRouter();
+  const [isOnline, setIsOnline] = useState(true);
+
+  useEffect(() => {
+    if (navigator.onLine) {
+      setIsOnline(navigator.onLine);
+    }
+  }, [navigator]);
+
+  console.log(navigator.onLine);
 
   const handleSend = async (text: string, files: File[]) => {
     console.log("New conversation started with text:", text, files);
@@ -23,7 +33,7 @@ export default function NewConversation() {
 
     // Store the initial message in localStorage
     localStorage.setItem(
-      newSessionId,
+      "session" + ";" + newSessionId,
       JSON.stringify({
         role: "user",
         text,
@@ -31,8 +41,13 @@ export default function NewConversation() {
       } as Message)
     );
 
-    // Redirect to conversation page with new session ID
-    router.push(`/chat/${newSessionId}`);
+    if (!isOnline) {
+      toast.info("You are currently offline.", {
+        description: "Your conversation will be started when you're online.",
+      });
+    } else {
+      router.push(`/chat/${newSessionId}`);
+    }
   };
 
   return (

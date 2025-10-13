@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import QueryProvider from "@/providers/QueryProvider";
+import { Toaster } from "@/components/ui/sonner";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -13,7 +14,8 @@ export const metadata: Metadata = {
   description: "Your AI Tour Guide In Your Pocket",
   icons: {
     icon: "/icon/Touri.webp",
-  }
+  },
+  manifest: "manifest.json",
 };
 
 export default function RootLayout({
@@ -34,8 +36,9 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <QueryProvider>{children}</QueryProvider>
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>
-  ); 
+  );
 }
