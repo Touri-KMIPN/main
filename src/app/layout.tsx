@@ -10,6 +10,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://touriai.com"),
+  generator: "Next.js", // framework used
   title: "Touri - Your Pocket AI Tour Guide",
   description: "Your AI Tour Guide In Your Pocket",
   icons: {

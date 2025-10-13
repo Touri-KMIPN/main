@@ -6,20 +6,16 @@ import { Message } from "@/types/chat";
 import { fileToBase64 } from "@/lib/base64";
 import { toast } from "sonner";
 
-export default function NewConversation() {
+type NewConversationProps = {
+  offlineMode?: boolean;
+};
+
+export default function NewConversation({
+  offlineMode = false,
+}: NewConversationProps) {
   const router = useRouter();
-  const [isOnline, setIsOnline] = useState(true);
-
-  useEffect(() => {
-    if (navigator.onLine) {
-      setIsOnline(navigator.onLine);
-    }
-  }, [navigator]);
-
-  console.log(navigator.onLine);
 
   const handleSend = async (text: string, files: File[]) => {
-    console.log("New conversation started with text:", text, files);
     // Generate a new session ID
     const newSessionId = crypto.randomUUID();
 
@@ -41,7 +37,7 @@ export default function NewConversation() {
       } as Message)
     );
 
-    if (!isOnline) {
+    if (offlineMode) {
       toast.info("You are currently offline.", {
         description: "Your conversation will be started when you're online.",
       });
@@ -59,11 +55,6 @@ export default function NewConversation() {
         </span>
         , your travel assistant. <br /> How can I help you today?
       </h1>
-      {/* <PromptInput
-                className='w-full max-w-screen-sm'
-                onSend={handleSend}
-                loading={false}
-            /> */}
 
       <div className="shrink-0 bg-background">
         <div className="max-w-screen-sm mx-auto p-4">
