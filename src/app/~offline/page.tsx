@@ -1,5 +1,10 @@
 import NewConversation from "@/components/chat/new-conversation";
+import { Metadata } from "next";
 import React from "react";
+
+export const metadata: Metadata = {
+  title: "Offline",
+};
 
 export default function Page() {
   return (
