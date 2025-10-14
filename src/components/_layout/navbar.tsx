@@ -12,7 +12,7 @@ export default function Navbar() {
           <div className="flex items-center gap-2">
             <Image
               src={"/icon/Touri.webp"}
-            className="overflow-hidden"
+              className="overflow-hidden"
               alt="Touri"
               width={40}
               height={40}
@@ -21,21 +21,30 @@ export default function Navbar() {
           </div>
         </Link>
         <nav className="text-sm hidden lg:block">
-        <ul className="flex items-center gap-8">
+          <ul className="flex items-center gap-8">
             <li>
-              <Link className="hover:text-primary/90" href="#how-to-use">How to Use</Link>
+              <Link className="hover:text-primary/90" href="#how-to-use">
+                How to Use
+              </Link>
             </li>
             <li>
-              <Link className="hover:text-primary/90" href="#popular">Popular Destinations</Link>
+              <Link className="hover:text-primary/90" href="#popular">
+                Popular Destinations
+              </Link>
             </li>
             <li>
-              <Link className="hover:text-primary/90" href="#faq">FAQ</Link>
+              <Link className="hover:text-primary/90" href="#faq">
+                FAQ
+              </Link>
             </li>
           </ul>
         </nav>
         <div className="flex items-center justify-center gap-4">
-          <Link href={"/chat?new=true"}>
-            <Button variant={"secondary"} className="rounded-full cursor-pointer">
+          <Link href={"/chat"}>
+            <Button
+              variant={"secondary"}
+              className="rounded-full cursor-pointer"
+            >
               Get Started!
             </Button>
           </Link>

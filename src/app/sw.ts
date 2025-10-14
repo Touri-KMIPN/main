@@ -1,5 +1,10 @@
 import { defaultCache } from "@serwist/next/worker";
-import { type PrecacheEntry, Serwist } from "serwist";
+import {
+  type PrecacheEntry,
+  Serwist,
+  PrecacheFallbackPlugin,
+  NetworkOnly,
+} from "serwist";
 
 declare global {
   interface WorkerGlobalScope {
@@ -27,6 +32,18 @@ const serwist = new Serwist({
   },
 });
 
+serwist.registerCapture(
+  /^\/chat\/.*/,
+  new NetworkOnly({
+    plugins: [
+      new PrecacheFallbackPlugin({
+        fallbackUrls: ["/~offline"],
+        serwist,
+      }),
+    ],
+  })
+);
+
 const urlsToCache = ["/", "/~offline"] as const;
 
 self.addEventListener("install", (event) => {
@@ -39,8 +56,8 @@ self.addEventListener("install", (event) => {
           event,
         });
         return request;
-      }),
-    ),
+      })
+    )
   );
 });
 

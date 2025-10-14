@@ -30,7 +30,7 @@ export default function CTASection() {
               className="w-full p-5 rounded-full bg-background text-foreground border border-input focus:outline-none focus:ring-2 focus:ring-primary shadow-xl shadow-primary/10 transition-all duration-300"
             />
             <Button className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-primary text-primary-foreground p-3 rounded-full hover:bg-primary/90 cursor-pointer transition-all duration-300 shadow-lg">
-              <Link href="/chat?new=true">
+              <Link href="/chat">
                 <Search size={22} />
               </Link>
             </Button>

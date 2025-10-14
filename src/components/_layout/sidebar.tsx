@@ -79,7 +79,7 @@ export function Sidebar({ isOpen, onToggle, sessions }: SidebarProps) {
 
       {/* Menu Items */}
       <nav className="flex-1 space-y-1 px-3 py-4">
-        <Link href={"/chat?new=true"}>
+        <Link href={"/chat"}>
           <Button
             variant={isOpen ? "default" : "ghost"}
             className={cn(
