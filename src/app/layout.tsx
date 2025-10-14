@@ -9,15 +9,24 @@ const inter = Inter({
   subsets: ["latin"],
 });
 
+const APP_NAME = "Touri App";
+const APP_DESCRIPTION = "Your AI Tour Guide In Your Pocket";
+
 export const metadata: Metadata = {
-  metadataBase: new URL("https://touriai.com"),
-  generator: "Next.js", // framework used
   title: "Touri - Your Pocket AI Tour Guide",
   description: "Your AI Tour Guide In Your Pocket",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: APP_NAME,
+  },
+   formatDetection: {
+    telephone: false,
+  },
   icons: {
     icon: "/icon/Touri.webp",
   },
-  manifest: "manifest.json",
 };
 
 export default function RootLayout({
