@@ -6,7 +6,6 @@ import React, { useEffect, useState } from "react";
 
 export default function Page() {
   const [isWaitingQueue, setIsWaitingQueue] = useState(false);
-  // 1. Gunakan useState untuk menyimpan status online, sehingga bisa diperbarui.
   const [queuedSessions, setQueuedSessions] = useState<Map<string, Message>>(
     new Map()
   );
@@ -38,6 +37,7 @@ export default function Page() {
   }, []);
 
   if (isWaitingQueue) {
+    console.log("You have queued sessions to continue.");
     return (
       <SelectQueuedChat
         options={queuedSessions}

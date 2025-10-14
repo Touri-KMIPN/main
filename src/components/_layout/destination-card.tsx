@@ -11,13 +11,13 @@ type DestinationCardProps = {
 export default function DestinationCard({title, subTitle, imageUrl }: DestinationCardProps) {
   return (
     <div className="flex items-center gap-3">
-      <div className="w-12 h-12 rounded-lg overflow-hidden">
+      <div className="rounded-lg overflow-hidden">
         <Image
           src={imageUrl}
           alt={title}
-          width={48}
-          height={48}
-          className="object-cover"
+          width={100}
+          height={100}
+          className="object-cover w-12 h-12 aspect-square overflow-hidden"
         />
       </div>
       <div>
