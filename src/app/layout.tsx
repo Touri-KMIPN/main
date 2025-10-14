@@ -3,17 +3,30 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import QueryProvider from "@/providers/QueryProvider";
+import { Toaster } from "@/components/ui/sonner";
 
 const inter = Inter({
   subsets: ["latin"],
 });
 
+const APP_NAME = "Touri App";
+const APP_DESCRIPTION = "Your AI Tour Guide In Your Pocket";
+
 export const metadata: Metadata = {
   title: "Touri - Your Pocket AI Tour Guide",
   description: "Your AI Tour Guide In Your Pocket",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: APP_NAME,
+  },
+   formatDetection: {
+    telephone: false,
+  },
   icons: {
     icon: "/icon/Touri.webp",
-  }
+  },
 };
 
 export default function RootLayout({
@@ -34,8 +47,9 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <QueryProvider>{children}</QueryProvider>
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>
-  ); 
+  );
 }

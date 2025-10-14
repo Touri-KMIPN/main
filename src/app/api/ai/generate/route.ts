@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { TouriChatService } from "@/ai/services/server/TouriChatService";
 import { ChatCallableFunction } from "@/types/tool";
 import {
+  GeocodingTool,
   GetUserLocationTool,
   ReverseGeocodingTool,
   SearchPlaceTools,
@@ -14,11 +15,14 @@ import {
 import { createSSEChunk } from "@/app/api/ai/generate/utils";
 import { $mongoClient } from "@/lib/db";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
+import { GetWeatherConditionTool } from "@/ai/tools/WeatherTools";
 
 const TOOLS: ChatCallableFunction[] = [
   SearchPlaceTools,
   GetUserLocationTool,
   ReverseGeocodingTool,
+  GeocodingTool,
+  GetWeatherConditionTool
 ];
 
 export async function POST(request: NextRequest) {

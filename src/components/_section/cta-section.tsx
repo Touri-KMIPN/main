@@ -1,5 +1,7 @@
-import { Search } from 'lucide-react';
-import React from 'react';
+import { Search } from "lucide-react";
+import React from "react";
+import { Button } from "../ui/button";
+import Link from "next/link";
 
 export default function CTASection() {
   return (
@@ -15,7 +17,7 @@ export default function CTASection() {
         <h1 className="text-3xl md:text-5xl font-bold text-foreground mb-4 tracking-tight">
           Where we going today?
         </h1>
-        
+
         <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
           Discover amazing places and experiences with our AI tour guide
         </p>
@@ -26,15 +28,19 @@ export default function CTASection() {
               type="text"
               placeholder="Search your destination..."
               className="w-full p-5 rounded-full bg-background text-foreground border border-input focus:outline-none focus:ring-2 focus:ring-primary shadow-xl shadow-primary/10 transition-all duration-300"
-            />  
-            <button className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-primary text-primary-foreground p-3 rounded-full hover:bg-primary/90 cursor-pointer transition-all duration-300 shadow-lg">
-              <Search size={22} />
-            </button>
+            />
+            <Button className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-primary text-primary-foreground p-3 rounded-full hover:bg-primary/90 cursor-pointer transition-all duration-300 shadow-lg">
+              <Link href="/chat?new=true">
+                <Search size={22} />
+              </Link>
+            </Button>
           </div>
         </div>
-        
+
         <div className="mt-8 flex flex-wrap justify-center gap-4">
-          <span className="text-sm text-muted-foreground/80">Try searching:</span>
+          <span className="text-sm text-muted-foreground/80">
+            Try searching:
+          </span>
           <button className="text-sm text-foreground/80 hover:text-foreground transition-colors border-b border-transparent hover:border-foreground">
             Ampera Bridge
           </button>

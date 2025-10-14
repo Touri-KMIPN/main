@@ -6,6 +6,7 @@ import {
   XIcon,
   AlignJustifyIcon,
   Trash2Icon,
+  LogOutIcon,
 } from "lucide-react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
@@ -16,6 +17,8 @@ import { ModeToggle } from "../theme-toggle";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { deleteSessionMutationOpts } from "@/queries/session-query";
 import { toast } from "sonner";
+import { LogoutLink } from "@kinde-oss/kinde-auth-nextjs/components";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -26,24 +29,25 @@ interface SidebarProps {
 export function Sidebar({ isOpen, onToggle, sessions }: SidebarProps) {
   const { user } = useKindeAuth();
 
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
   const { mutate: deleteSession, isPending: isDeleting } = useMutation({
     ...deleteSessionMutationOpts,
     onSuccess() {
       queryClient.invalidateQueries({
-        queryKey: ['sessions']
-      })
+        queryKey: ["sessions"],
+      });
       toast.success("Session deleted");
     },
     onError() {
       toast.error("Failed to delete session");
-    }
-  })
+    },
+  });
 
   return (
     <aside
-      className={`relative flex flex-col z-20 border-r border-border max-h-dvh overflow-hidden bg-sidebar transition-all duration-300 ${isOpen ? "w-full md:w-58" : "w-0 md:w-16"
-        }`}
+      className={`relative flex flex-col z-20 border-r border-border max-h-dvh overflow-hidden bg-sidebar transition-all duration-300 ${
+        isOpen ? "w-full md:w-58" : "w-0 md:w-16"
+      }`}
     >
       {/* Header */}
       <div className="flex h-16 items-center justify-between px-4">
@@ -104,8 +108,9 @@ export function Sidebar({ isOpen, onToggle, sessions }: SidebarProps) {
                     <Button
                       disabled={isDeleting}
                       variant="ghost"
-                      className={`w-full justify-start gap-3 ${!isOpen && "justify-center px-2"
-                        } text-muted-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"`}
+                      className={`w-full justify-start gap-3 ${
+                        !isOpen && "justify-center px-2"
+                      } text-muted-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"`}
                     >
                       {item.summary.length > 20
                         ? `${item.summary.substring(0, 20)}...`
@@ -135,11 +140,23 @@ export function Sidebar({ isOpen, onToggle, sessions }: SidebarProps) {
       <div className="border-t border-sidebar-border absolute w-full md:max-w-58 bottom-0 p-4">
         {isOpen ? (
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent text-primary-foreground">
-              <span className="text-sm font-semibold">
-                {user?.given_name?.charAt(0)}
-              </span>
-            </div>
+            <Popover>
+              <PopoverTrigger className="cursor-pointer">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent text-primary-foreground">
+                  <span className="text-sm font-semibold">
+                    {user?.given_name?.charAt(0)}
+                  </span>
+                </div>
+              </PopoverTrigger>
+              <PopoverContent className="w-fit">
+                <LogoutLink>
+                  <Button variant={"secondary"}>
+                    Logout
+                    <LogOutIcon />
+                  </Button>
+                </LogoutLink>
+              </PopoverContent>
+            </Popover>
             <div className="flex-1 overflow-hidden">
               <p className="truncate text-sm font-medium text-sidebar-foreground">
                 {user?.given_name}
