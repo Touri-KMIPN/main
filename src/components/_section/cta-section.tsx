@@ -1,5 +1,7 @@
-import { Link, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import React from "react";
+import { Button } from "../ui/button";
+import Link from "next/link";
 
 export default function CTASection() {
   return (
@@ -27,11 +29,11 @@ export default function CTASection() {
               placeholder="Search your destination..."
               className="w-full p-5 rounded-full bg-background text-foreground border border-input focus:outline-none focus:ring-2 focus:ring-primary shadow-xl shadow-primary/10 transition-all duration-300"
             />
-            <Link href="/chat?new=true">
-              <button className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-primary text-primary-foreground p-3 rounded-full hover:bg-primary/90 cursor-pointer transition-all duration-300 shadow-lg">
+            <Button className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-primary text-primary-foreground p-3 rounded-full hover:bg-primary/90 cursor-pointer transition-all duration-300 shadow-lg">
+              <Link href="/chat?new=true">
                 <Search size={22} />
-              </button>
-            </Link>
+              </Link>
+            </Button>
           </div>
         </div>
 
