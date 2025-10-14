@@ -17,5 +17,8 @@
   ],
   "theme_color": "#ffffff",
   "background_color": "#ffffff",
-  "display": "standalone"
+  "display": "standalone",
+  "background": {
+    "service_worker": "service_worker.js"
+  }
 }
