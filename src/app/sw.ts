@@ -22,21 +22,21 @@ const serwist = new Serwist({
   },
   skipWaiting: true,
   clientsClaim: true,
-  navigationPreload: true,
+  navigationPreload: false,
   runtimeCaching: defaultCache,
   fallbacks: {
     entries: [
       {
-        url: "/offline",
+        url: "/~offline",
         matcher({ request }) {
-          return request.destination === "document";
+          return request.url === "/chat";
         },
       },
     ],
   },
 });
 
-const urlsToCache = ["/offline"] as const;
+const urlsToCache = ["/~offline"] as const;
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
