@@ -8,7 +8,7 @@ export default function Page() {
         <NewConversation offlineMode />
         <p className="text-muted-foreground text-sm">
           It seems to be you've been offline for a while... Please select one of
-          these chat to continue them!
+          these chat to continue them...
         </p>
       </div>
     </div>
