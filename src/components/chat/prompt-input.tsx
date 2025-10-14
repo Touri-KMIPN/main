@@ -23,7 +23,6 @@ import {
 import Link from "next/link";
 import FilePreview from "@/components/chat/file-preview";
 import { cn } from "@/lib/utils";
-import { addToQueue } from "@/lib/queue";
 
 // Custom hook for auto-resizing textarea
 const useAutoResize = () => {
@@ -114,8 +113,6 @@ export default function PromptInput({
           prompt: currentInput,
           files: serializableFiles,
         };
-
-        addToQueue(messagePayload);
       } catch (error) {
         console.error("Gagal mengubah file atau menyimpan ke antrean:", error);
         setInput(currentInput);
